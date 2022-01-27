@@ -1,0 +1,26 @@
+.navbar {
+  min-width: 100%;
+  min-height: 55px;
+  overflow: hidden;
+  box-shadow: 0px 0px 8px 2px grey;
+  position: fixed;
+  background-color: white;
+  z-index: 1;
+}
+
+.navbar div img {
+  float: left;
+  width: 130px;
+  height: 22px;
+  display: block;
+  margin-left: 48px;
+  margin-top: 16px;
+}
+
+@media screen and (max-width: 315px) {
+  .navbar div img {
+    width: 110px;
+    height: 20px;
+    margin-left: 10px;
+  }
+}
