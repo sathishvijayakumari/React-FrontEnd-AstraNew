@@ -79,7 +79,7 @@ class Home extends Component {
                 <Link to="/zoneconfig">
                   <img
                     alt=""
-                    src="../images/Widgets/ZoneConfig.png"
+                    src="../images/Widgets/Widget_ZoneConfig.png"
                     style={ImageSize}
                     className="fading"
                   />
@@ -171,7 +171,7 @@ class Home extends Component {
                 <Link to="/airquality">
                   <img
                     alt=""
-                    src="../images/Widgets/AirQualityParamters.png"
+                    src="../images/Widgets/Widget_AirQuality.png"
                     style={ImageSize}
                     className="fading"
                     onClick={() => linkClicked(3)}
