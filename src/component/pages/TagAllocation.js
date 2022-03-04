@@ -69,7 +69,7 @@ class TagAllocation extends Component {
             if (error.response.status === 403) {
               $("#config_displayModal").css("display", "block");
               $("#content").text(
-                "User Session has timed out.<br> Please Login again."
+                "User Session has timed out. Please Login again."
               );
             } else {
               $("#conf-error").text(
@@ -96,7 +96,7 @@ class TagAllocation extends Component {
     this.hide();
     e.preventDefault();
     let id = $("#empid").val();
-    console.log(id);
+    // console.log(id);
     if (id.length === 0) $("#conf-error").text("Please enter employee id.");
     else {
       axios({
@@ -118,7 +118,7 @@ class TagAllocation extends Component {
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again"
+              "User Session has timed out. Please Login again"
             );
           } else {
             $("#conf-error").text(

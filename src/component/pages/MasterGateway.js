@@ -15,13 +15,14 @@ class MasterGateway extends Component {
       .then((response) => {
         if (response.status === 201 || response.status === 200) {
           this.fdata = response.data;
+          console.log("Floor Data========>", this.fdata);
           if (this.fdata.length !== 0) {
             for (let i = 0; i < this.fdata.length; i++) {
               $("#fname").append("<option>" + this.fdata[i].name + "</option>");
             }
           } else {
             $("#master-error").text(
-              "Please upload floormap to register Master Gateway."
+              "Please upload Floor Map to register Master Gateway."
             );
           }
         } else {
@@ -45,6 +46,7 @@ class MasterGateway extends Component {
   /** Displays Delete master gateway form on clicking Delete Gateway Button */
   show = () => {
     document.getElementById("gatewayid").value = "";
+    $("input[type='text']").val("");
     document.getElementById("gateway-del-form").style.display =
       document.getElementById("gateway-del-form").style.display === "block"
         ? "none"
@@ -87,18 +89,19 @@ class MasterGateway extends Component {
           if (response.status === 201 || response.status === 200) {
             document.getElementById("master-success").innerHTML =
               "Gateway registered successfully.";
+              $("#gatewayid").val("");
           } else {
             document.getElementById("master-error").innerHTML =
               "Unable to Register Gateway.";
           }
         })
         .catch((error) => {
-          console.log(error);
+          // console.log(error);
           if (error.response.status === 403) {
             document.getElementById("config_displayModal").style.display =
               "block";
             document.getElementById("content").innerHTML =
-              "User Session has timed out.<br> Please Login again";
+              "User Session has timed out. Please Login again";
           } else {
             document.getElementById("master-error").innerHTML =
               "Request Failed with status code (" +
@@ -130,6 +133,8 @@ class MasterGateway extends Component {
           if (response.status === 201 || response.status === 200) {
             document.getElementById("master-success").innerHTML =
               "Gateway un-registered successfully.";
+              $("#gateway").val("");
+              this.show();
           } else {
             document.getElementById("master-error").innerHTML =
               "Unable to un-register Gateway.";
@@ -140,7 +145,7 @@ class MasterGateway extends Component {
             document.getElementById("config_displayModal").style.display =
               "block";
             document.getElementById("content").innerHTML =
-              "User Session has timed out.<br> Please Login again";
+              "User Session has timed out. Please Login again";
           } else {
             document.getElementById("master-error").innerHTML =
               "Request Failed with status code (" +

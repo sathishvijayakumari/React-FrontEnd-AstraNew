@@ -11,15 +11,6 @@ const Logo = {
   cursor: "pointer",
 };
 
-// const Logout = {
-//   opacity: "0.8",
-//   float: "right",
-//   color: "grey",
-//   marginRight: "-40px",
-//   marginTop: "20px",
-//   fontFamily: "Roboto-Medium",
-// };
-
 class Header extends Component {
   logout = () => {
     axios({
@@ -28,7 +19,6 @@ class Header extends Component {
     })
       .then((response) => {
         sessionStorage.clear("isLoggedIn");
-        // sessionStorage.setItem("isLoggedIn", 0);
         this.props.handleLogin(0);
       })
       .catch((error) => {
@@ -53,9 +43,6 @@ class Header extends Component {
               onClick={this.logout}
               className="logoutImg"
             />
-            {/* <a href=""> */}
-            {/* <p style={Logout}></p> */}
-            {/* </a> */}
           </div>
         </div>
       </Fragment>

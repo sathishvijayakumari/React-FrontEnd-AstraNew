@@ -23,11 +23,6 @@ class Home extends Component {
   /** Method is called on Component Load */
   componentDidMount() {
     linkClicked(0);
-    // sets a timer for auto logout on session expiry
-    // setTimeout(() => {
-    //   sessionStorage.setItem("isLoggedIn", 0);
-    //   this.props.handleLogin(0);
-    // }, 595 * 1000);
   }
 
   /** Redern the html content on the browser */
@@ -54,7 +49,6 @@ class Home extends Component {
                     src="../images/Widgets/Widget_Config.png"
                     style={ImageSize}
                     className="fading"
-                  // onClick={() => linkClicked(1)}
                   />
                 </Link>
               </div>
@@ -66,7 +60,6 @@ class Home extends Component {
                     src="../images/Widgets/Widget_Upload.png"
                     style={ImageSize}
                     className="fading"
-                  // onClick={() => linkClicked(2)}
                   />
                 </Link>
               </div>
@@ -78,7 +71,6 @@ class Home extends Component {
                     src="../images/Widgets/Widget_Assets.png"
                     style={ImageSize}
                     className="fading"
-                  // onClick={() => linkClicked(4)}
                   />
                 </Link>
               </div>
@@ -90,7 +82,6 @@ class Home extends Component {
                     src="../images/Widgets/ZoneConfig.png"
                     style={ImageSize}
                     className="fading"
-                  // onClick={() => linkClicked(4)}
                   />
                 </Link>
               </div>
@@ -101,19 +92,16 @@ class Home extends Component {
               <span className="heading">Personnel Management</span>
               <br />
               <hr></hr>
-              {/* Widget for Employee registration */}
-              <div className="col-4">
+              {/* <div className="col-4">
                 <Link to="/employeeRegistration">
                   <img
                     alt=""
                     src="../images/Widgets/EmployeeRegistration.png"
                     style={ImageSize}
                     className="fading"
-                  // onClick={() => linkClicked(8)}
                   />
                 </Link>
               </div>
-              {/* Widget for Tag allocation */}
               <div className="col-4">
                 <Link to="/tagAllocation">
                   <img
@@ -121,10 +109,10 @@ class Home extends Component {
                     src="../images/Widgets/TagAllocation.png"
                     style={ImageSize}
                     className="fading"
-                  // onClick={() => linkClicked(8)}
                   />
                 </Link>
-              </div>
+              </div> */}
+              
               {/* Widget for Tracking, on click navigate to Tracking page */}
               <div className="col-4">
                 <Link to="/tracking">
@@ -138,7 +126,7 @@ class Home extends Component {
                 </Link>
               </div>
               {/* Widget for Distance Tracking */}
-              <div className="col-4">
+              {/* <div className="col-4">
                 <Link to="/distanceTracking">
                   <img
                     alt=""
@@ -149,7 +137,6 @@ class Home extends Component {
                   />
                 </Link>
               </div>
-              {/* Widget for Alerts, on click navigate to Daily Reports page */}
               <div className="col-4">
                 <Link to="/dailyreport">
                   <img
@@ -160,7 +147,7 @@ class Home extends Component {
                     onClick={() => linkClicked(3)}
                   />
                 </Link>
-              </div>
+              </div> */}
             </div>
 
             <br></br>
@@ -176,7 +163,7 @@ class Home extends Component {
                     src="../images/Widgets/Widget_ThermalMap.png"
                     style={ImageSize}
                     className="fading"
-                    onClick={() => linkClicked(4)}
+                    onClick={() => linkClicked(2)}
                   />
                 </Link>
               </div>
@@ -187,7 +174,7 @@ class Home extends Component {
                     src="../images/Widgets/AirQualityParamters.png"
                     style={ImageSize}
                     className="fading"
-                    onClick={() => linkClicked(5)}
+                    onClick={() => linkClicked(3)}
                   />
                 </Link>
               </div>
@@ -206,7 +193,6 @@ class Home extends Component {
                     src="../images/Widgets/Widget_Syshealth.png"
                     style={ImageSize}
                     className="fading"
-                  // onClick={() => linkClicked(5)}
                   />
                 </Link>
               </div>
@@ -218,7 +204,7 @@ class Home extends Component {
                     src="../images/Widgets/Widget_Alert.png"
                     style={ImageSize}
                     className="fading"
-                    onClick={() => linkClicked(6)}
+                    onClick={() => linkClicked(4)}
                   />
                 </Link>
               </div>
@@ -230,10 +216,20 @@ class Home extends Component {
                     src="../images/Widgets/Widget_Sensors.png"
                     style={ImageSize}
                     className="fading"
-                  // onClick={() => linkClicked(7)}
                   />
                 </Link>
               </div>
+
+              {/* <div className="col-4">
+                <Link to="/vehicle">
+                  <img
+                    alt=""
+                    src="../images/Widgets/Widget_Vehicle.png"
+                    style={ImageSize}
+                    className="fading"
+                  />
+                </Link>
+              </div> */}
             </div>
           </div>
         </div>

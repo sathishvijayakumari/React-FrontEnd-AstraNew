@@ -1,34 +1,37 @@
+/* eslint-disable no-useless-concat */
 import React, { Component, Fragment } from "react";
 import { Helmet } from "react-helmet";
 import { linkClicked } from "../navbar/Navbar";
 import axios from "axios";
 import $ from "jquery";
 import "./Styling.css";
+import "./Pulse.css";
 import {
-  employeeTracking,
-  floorMap,
-  panicAlert,
   zoneConfiguration,
-  zoneMontylyTracking,
-  zoneTrakcing,
-  zoneWeeklyTracking,
 } from "../../urls/apis";
 import Chart from "chart.js/auto";
-import html2pdf from "html2pdf.js";
 
-// Styling property for Underline Image
-const Underline = {
-  width: "75px",
-  height: "9px",
-  position: "absolute",
-  zIndex: "-1",
+const graphBtn = {
+  padding: "8px 10px",
+  border: "none",
+  marginLeft: "15px",
+  borderRadius: "4px",
+  fontSize: "16px",
+  cursor: "pointer",
+  color: "Black",
+  fontWeight: "bold",
+  boxShadow: "3px 3px 5px 3px rgba(0, 0, 0, 0.25)",
 };
+
+axios.defaults.xsrfHeaderName = "x-csrftoken";
+axios.defaults.xsrfCookieName = "csrftoken";
+axios.defaults.withCredentials = true;
 
 class Tracking extends Component {
   // local variable
   fWidth = 0;
   fHeight = 0;
-  jsonData = [];
+  // jsonData = [];
   interval = "";
   panicinterval = "";
   c = 0;
@@ -36,20 +39,17 @@ class Tracking extends Component {
   flag = "false";
   floorData = [];
 
-  /** Method is called on Component Load.
-   * Getting floor maps list and added to dropdown list
-   */
   componentDidMount() {
     linkClicked(1);
-    // api call on componet load to get all floor maps registered
     axios({
       method: "GET",
-      url: floorMap,
+      url: "/api/uploadmap",
       headers: {
         "content-type": "multipart/form-data",
       },
     })
       .then((response) => {
+        console.log("=======>", response);
         if (response.status === 201 || response.status === 200) {
           $("#floor-error").text("");
           this.fdata = response.data;
@@ -72,9 +72,7 @@ class Tracking extends Component {
       .catch((error) => {
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
         } else {
           $("#floor-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -83,123 +81,96 @@ class Tracking extends Component {
       });
   }
 
-  /** On component unmount clear the interval */
   componentWillUnmount() {
     clearInterval(this.interval);
-    // clearInterval(this.panicinterval);
+    clearTimeout(this.timeout);
+    clearTimeout(this.intVal);
   }
 
-  /** Method to display floor map image on selecting floor name */
   plotFloorMap = () => {
-    let floorID = $("#fname").val(); // Getting the id of floor map from select list to get particular floor data
-    this.fimage = this.floorData[floorID]; // Getting the floor map details(name, height, width, path) for selected id
-    this.fWidth = this.fimage.width; // Width of the floor
-    this.fHeight = this.fimage.height; // Height of the floor
-    $("#tempimg").attr(
-      "src",
-      this.fimage.image.substring(8, this.fimage.image.length)
-    );
-    // Setting the pixel for 1m based on floor map width
-    if (this.fWidth > 0 && this.fWidth <= 20) this.xpixel = 50;
-    else if (this.fWidth > 20 && this.fWidth <= 40) this.xpixel = 30;
-    else if (this.fWidth > 40 && this.fWidth <= 80) this.xpixel = 20;
-    else if (this.fWidth > 80 && this.fWidth <= 120) this.xpixel = 10;
-    else this.xpixel = 8;
-    // Setting maximum width for floor map based on floor map width
-    if (this.fWidth > 0 && this.fWidth <= 20) {
-      this.maxWidth = this.fimage.width * 100;
-    } else if (this.fWidth > 20 && this.fWidth <= 40) {
-      this.maxWidth = this.fimage.width * 60;
-    } else if (this.fWidth > 40 && this.fWidth <= 80) {
-      this.maxWidth = this.fimage.width * 40;
-    } else if (this.fWidth > 80 && this.fWidth <= 120) {
-      this.maxWidth = this.fimage.width * 20;
-    } else {
-      this.maxWidth = this.fimage.width * 10;
-    }
-    let w = $("#tempimg").css("width"); // Fetching actual width of image in pixels
-    let h = $("#tempimg").css("height"); // Fetching actual height of image in pixels
-    this.c = parseFloat(w) / parseFloat(h); // Calcualting ratio of floor map
-    // Calculating default width and height of floor map image
-    this.minImgWidth = this.fWidth * this.xpixel;
-    this.minImgHeight = this.minImgWidth / this.c;
-    this.maxHeight = this.maxWidth / this.c;
-    // Setting width and height property of floor map image div
-    $("#temp").css("width", this.minImgWidth);
-    $("#temp").css("height", this.minImgHeight);
-    // Setting maximum  width and height for floor map image for zoom effect
-    $("#temp").css("max-width", this.maxWidth);
-    $("#temp").css("max-height", this.maxHeight);
-    // Setting  minimum width and height for floor map image for zoom effect
-    $("#temp").css("min-width", this.minImgWidth);
-    $("#temp").css("min-height", this.minImgHeight);
-    $("#tempimg").attr("style", "width:100%; height:100%;");
-
+    let floorID = $("#fname").val();
+    this.fimage = this.floorData[floorID];
+    this.fWidth = this.fimage.width;
+    this.fHeight = this.fimage.height;
+    $("#tempimg").attr("src", this.fimage.image);
+    $("#tempimg").attr("style", "width:" + "auto;" + "height:" + "auto;");
     $("#lastupdated").css("display", "none");
     $("#temp").children("div").remove();
+    $("#tempChart").remove();
+    $("#temp .sensors").remove();
+    $("#graphBlock").css("display", "none");
     $("input[type=text]").val("");
-    // Calling method to plot tags on map
-    this.getZones();
-    this.plotAssets();
-    // timer function for refreshing each 5 seconds
+    this.timeout = setTimeout(() => {
+      $("#temp .sensors").remove();
+      $("#temp #empls").remove();
+      this.getZones();
+      this.panicData();
+    }, 2 * 1000);
     clearInterval(this.interval);
-    this.interval = setInterval(this.plotAssets, 10 * 1000);
-    // clearInterval(this.panicinterval);
-    // this.panicinterval = setInterval(this.panicFunction, 5 * 1000);
+    this.interval = setInterval(this.panicData, 15 * 1000);
   };
 
-  /** Getting all zone for particular floor and marking them on floor map image */
   getZones = () => {
     let floorID = $("#fname").val();
+    $("#track-error").text("");
+    this.wp = document.getElementById("temp").clientWidth;
+    this.hp = document.getElementById("temp").clientHeight;
+    console.log(this.wp, "==========", this.hp);
     axios({
       method: "GET",
       url: zoneConfiguration + "?floorid=" + this.floorData[floorID].id,
     })
       .then((response) => {
+        console.log(response);
         if (response.status === 200) {
-          let wpx = document.getElementById("temp").clientWidth / this.fWidth;
-          let hpx = document.getElementById("temp").clientHeight / this.fHeight;
+          $("#temp .sensors").remove();
+          let wpx = this.wp / this.fWidth;
+          let hpx = this.hp / this.fHeight;
           if (response.data.length !== 0) {
             let data = response.data;
+            $("#tempimg").attr(
+              "style",
+              "width:" + this.wp + "px;" + "height:" + this.hp + "px;"
+            );
             for (let i = 0; i < data.length; i++) {
               let xaxis = 0,
                 yaxis = 0;
-              xaxis = parseInt(wpx * parseFloat(data[i].x1)) - 1;
-              yaxis = parseInt(hpx * parseFloat(data[i].y1)) - 1;
-              let xpadding = Math.ceil((data[i].x2 - data[i].x1) * wpx);
-              let ypadding = Math.ceil((data[i].y2 - data[i].y1) * hpx);
+              xaxis = parseInt(wpx * parseFloat(data[i].x1));
+              yaxis = parseInt(hpx * parseFloat(data[i].y1));
+              let width = Math.ceil((data[i].x2 - data[i].x1) * wpx);
+              let height = Math.ceil((data[i].y2 - data[i].y1) * hpx);
               let childDiv1 = document.createElement("div");
               $(childDiv1).attr("id", data[i].zonename);
+              $(childDiv1).attr("class", "sensors");
               $(childDiv1).attr("title", "ZoneName: " + data[i].zonename);
               $(childDiv1).attr(
                 "style",
-                // "background-image : url(../images/Icons/Temp_Icon.png); background-size:cover; " +
-                "border:0.5px solid black; background-color:rgb(0,0,0,0.1); position: absolute; cursor: pointer; left:" +
-                  xaxis +
-                  "px; top:" +
-                  yaxis +
-                  "px; padding:" +
-                  ypadding / 2 +
-                  "px " +
-                  xpadding / 2 +
-                  "px;"
+                "border:1px solid black;background:rgba(0, 0, 0,0.29);" +
+                "position: absolute; cursor: pointer; left:" +
+                xaxis +
+                "px; top:" +
+                yaxis +
+                "px;" +
+                "width:" +
+                width +
+                "px;" +
+                "height:" +
+                height +
+                "px;"
               );
               $(childDiv1).on("click", () => {
                 this.getDailyData(data[i].zonename, this.floorData[floorID].id);
               });
               $("#temp").append(childDiv1);
             }
-            this.dummy(data);
           }
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.log("error===>", error);
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
         } else {
           $("#track-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -208,163 +179,179 @@ class Tracking extends Component {
       });
   };
 
-  dummy = (zonename) => {
-    let floorID = $("#fname").val();
-    for (let i in zonename) {
-      axios({
-        method: "POST",
-        url: zoneTrakcing,
-        data: {
-          floorid: this.floorData[floorID].id,
-          zonename: zonename[i].zonename,
-        },
-      })
-        .then((response) => {
-          if (response.status === 200) {
-            // $("#graphBlock").css("display", "block");
-            // $("#chartID").text(zonename[i].zonename);
-            if (response.data.length !== 0) {
-              let data = response.data;
-              var timing = [],
-                count = [];
-              for (let i = 0; i < data.length; i++) {
-                timing.push(data[i].timestamp);
-                count.push(data[i].count);
-              }
-              // <div style={{ border: "4px double gray", padding: "0px 30px" }}>
-              //   <div className="sub-heading">
-              //     <p>Zone Name : </p>
-              //     <p>Floor Name : </p>
-              //     <p>Date/time : </p>
-              //     <p>Description : Zone wise employee count</p>
-              //   </div>
-              //   <hr></hr>
-              //   <div id="zone"></div>
-              // </div>;
-
-              var tit = document.createElement("div");
-              $(tit).attr("class", "sub-heading");
-              $(tit).append(
-                "<p>Floor Name : " + this.floorData[floorID].name + "</p>"
-              );
-              $(tit).append("<p>Zone Name : " + zonename[i].zonename + "</p>");
-              $(tit).append("<p>Date time : " + new Date() + "</p>");
-              $(tit).append("<p>Description : Zone wise employee count</p>");
-              var cnvs = document.createElement("canvas");
-              $(cnvs).attr("id", i);
-              $(cnvs).attr("width", "50px");
-              $(cnvs).attr("height", "23px");
-              var out = document.createElement("div");
-              $(out).attr(
-                "style",
-                "padding: 0px 30px 10px; margin-bottom:20px"
-              );
-              $(out).append(tit);
-              $(out).append("<hr />");
-              $(out).append(cnvs);
-              // $(out).css("padding", "10px");
-              // $(out).append("<br />");
-              // $(out).append("<br /><br />");
-              // $(out).append("<br />");
-              $("#graph_pdf").append(out);
-              // chart displaying code
-              $("#zone").append(cnvs);
-              const tempChart = $("#" + i);
-              new Chart(tempChart, {
-                type: "line",
-                data: {
-                  //Bring in data
-                  labels: timing,
-                  datasets: [
-                    {
-                      label: "Employee Count",
-                      data: count,
-                      backgroundColor: "green",
-                      borderColor: "green",
-                      borderWidth: 2,
-                      pointRadius: 0.5,
-                      lineTension: 0.4,
-                    },
-                  ],
-                },
-                options: {
-                  responsive: true,
-                  scales: {
-                    xAxes: [
-                      {
-                        title: {
-                          display: true,
-                          text: "Timestamp",
-                          font: {
-                            size: 15,
-                          },
-                        },
-                        ticks: { display: true },
-                      },
-                    ],
-                    yAxes: [
-                      {
-                        title: {
-                          display: true,
-                          text: "Count",
-                          font: {
-                            size: 15,
-                          },
-                        },
-                        ticks: { beginAtZero: true, min: 0, stepSize: 50 },
-                      },
-                    ],
-                  },
-                  plugins: {
-                    legend: {
-                      display: true,
-                      position: "top",
-                    },
-                  },
-                },
-              });
-              window.scrollTo(0, document.body.scrollHeight);
-            }
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
-  };
-
-  downloadpdf = () => {
-    var opt = {
-      margin: 0.5,
-      filename: "table.pdf",
-      image: { type: "jpeg", quality: 1 },
-      html2canvas: {
-        scale: 1,
-      },
-      jsPDF: {
-        unit: "in",
-        format: "a4",
-        orientation: "l",
-      },
-    };
-    html2pdf().from(document.getElementById("graph_pdf")).set(opt).save();
-  };
-
-  /** Getting employee count for particular floor map on daily bases
-   * displaying information in graph format
-   */
-  getDailyData = (zonename, floorid) => {
-    $("#graphBlock").css("display", "none");
-    $("#track-error").text("");
+  panicData = () => {
+    let alert_data = [];
+    let fname = $("#fname").val();
     axios({
-      method: "POST",
-      url: zoneTrakcing,
-      data: { floorid: floorid, zonename: zonename },
+      method: "GET",
+      url: "/api/alert/panic?floor=" + this.floorData[fname].id,
     })
       .then((response) => {
         if (response.status === 200) {
+          let data = response.data;
+          if (data.length !== 0) {
+            console.log("alert_data-------->", data);
+            for (let i = 0; i < data.length; i++) {
+              alert_data.push(data[i]);
+            }
+          }
+        }
+      })
+      .catch((error) => {
+        console.log("plotAssets--error====>", error);
+      });
+    this.intVal = setTimeout(() => this.plotAssets(alert_data), 2 * 1000);
+  };
+
+  plotAssets = (alert_data) => {
+    let fname = $("#fname").val();
+    $("#total").text("0");
+    $("#track-error").text("");
+    $("#temp #empls").remove();
+    console.log("alert_data---------------->", alert_data);
+    axios({
+      method: "GET",
+      url: "/api/employee/tracking?floor=" + this.floorData[fname].id,
+    })
+      .then((response) => {
+        console.log("plotAssets response========>", response);
+        if (response.status === 200) {
+          $("#track-error").text("");
+          let data = response.data;
+          if (data.length !== 0) {
+            let wpx = document.getElementById("temp").clientWidth / this.fWidth;
+            let hpx = document.getElementById("temp").clientHeight / this.fHeight;
+            $("#lastupdated").css("display", "block");
+            let totaltags = 0;
+            for (let i = 0; i < data.length; i++) {
+              let timestamp =
+                new Date() -
+                new Date(data[i].lastseen.substring(0, 19).replace("T", " "));
+              let update_time = "";
+              if (timestamp <= 2 * 60 * 1000) {
+                let color = "blue";
+                update_time = data[i].lastseen.substring(0, 19).replace("T", " ");
+                if (alert_data.length > 0) {
+                  for (let j = 0; j < alert_data.length; j++) {
+                    if (data[i].tagid === alert_data[j].asset.tagid) {
+                      let time_stamp =
+                        new Date() -
+                        new Date(
+                          alert_data[j].timestamp.substring(0, 10) +
+                          " " +
+                          alert_data[j].timestamp.substring(11, 19)
+                        );
+                      if (time_stamp <= 2 * 60 * 1000) {
+                        if (alert_data[j].value === 1) {
+                          color = "red";
+                          break;
+                        } else if (alert_data[j].value === 3) {
+                          color = "yellow";
+                          break;
+                        } else {
+                          color = "blue";
+                          break;
+                        }
+                      }
+                    }
+                  }
+                } else {
+                  color = "blue";
+                }
+                console.log(data[i].tagid, "PANIC COLOR ------->", color);
+                totaltags = totaltags + 1;
+
+                let empDiv = document.createElement("div");
+                $(empDiv).attr("id", "empls");
+                $(empDiv).attr("class", "emp_" + data[i].tagid);
+
+                let inner_circle = document.createElement("div");
+                $(inner_circle).attr(
+                  "style",
+                  "left:" +
+                  (wpx * parseFloat(data[i].x)).toFixed(2) +
+                  "px; top:" +
+                  (hpx * parseFloat(data[i].y)).toFixed(2) +
+                  "px;"
+                );
+                let pulse = document.createElement("div");
+                if (color === "red") {
+                  $(inner_circle).attr("class", "inner_circle_red");
+                  $(pulse).attr("class", "pulsatingcircle_red");
+                } else if (color === "yellow") {
+                  $(inner_circle).attr("class", "inner_circle_yellow");
+                  $(pulse).attr("class", "pulsatingcircle_yellow");
+                } else if (color === "blue") {
+                  $(inner_circle).attr("class", "inner_circle_blue");
+                  $(pulse).attr("class", "pulsatingcircle_blue");
+                }
+
+                $(inner_circle).attr(
+                  "title",
+                  "Employee Name  : " +
+                  data[i].name +
+                  "\nTag ID : " +
+                  data[i].tagid +
+                  "\nX : " +
+                  data[i].x.toFixed(2) +
+                  "\nY : " +
+                  data[i].y.toFixed(2)
+                );
+                $(inner_circle).append(pulse);
+                $(empDiv).append(inner_circle);
+                $("#temp").append(empDiv);
+                $("#timing").text(update_time);
+              } else if (totaltags === 0) {
+                let upd_Time =
+                  data[0].lastseen.substring(0, 10) +
+                  " " +
+                  data[0].lastseen.substring(11, 19);
+                $("#timing").text(upd_Time);
+              }
+            }
+            $("#total").text(totaltags);
+            if ($("#temp").children("div").length === 0) {
+              $("#track-error").text("No asset detected.");
+            } else {
+              $("#track-error").text("");
+            }
+          } else {
+            $("#track-error").text(
+              "No Asset is turned on, Please check System Health Page."
+            );
+          }
+        } else {
+          $("#track-error").text("Unable to get Tags Data.");
+        }
+      })
+      .catch((error) => {
+        console.log("error=====>", error);
+        if (error.response.status === 403) {
+          $("#tracking_displayModal").css("display", "block");
+          $("#content").text("User Session has timed out. Please Login again");
+        } else {
+          $("#track-error").text(
+            "Request Failed with status code (" + error.response.status + ")."
+          );
+        }
+      });
+  };
+
+  getDailyData = (zonename, floorid) => {
+    $("#graphBlock").css("display", "none");
+    $("#track-error").text("");
+    $("#tempChart").remove();
+    axios({
+      method: "POST",
+      url: "/api/zones/tracking",
+      data: { floorid: floorid, zonename: zonename },
+    })
+      .then((response) => {
+        console.log("Response=---->", response);
+        if (response.status === 200) {
           if (response.data.length !== 0) {
             $("#graphBlock").css("display", "block");
+            this.optionChange("opt0");
             $("#chartID").text(zonename);
             let data = response.data;
             var timing = [],
@@ -394,7 +381,7 @@ class Tracking extends Component {
                     backgroundColor: "green",
                     borderColor: "green",
                     borderWidth: 2,
-                    pointRadius: 2,
+                    pointRadius: 0.5,
                     lineTension: 0.4,
                   },
                 ],
@@ -421,12 +408,10 @@ class Tracking extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
         } else {
           $("#track-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -435,19 +420,30 @@ class Tracking extends Component {
       });
   };
 
+  optionChange = (btnId) => {
+    $("#opt0").css({ background: "none", color: "#000" });
+    $("#opt1").css({ background: "none", color: "#000" });
+    $("#opt2").css({ background: "none", color: "#000" });
+    console.log("----->", btnId);
+    $("#" + btnId).css({ background: "rgb(0, 98, 135)", color: "#FFF" });
+  };
+
   /** Daily tracking data for paricular zone already selected  */
-  dailyData = () => {
+  dailyData = (btnId) => {
+    this.optionChange(btnId);
     $("#track-error").text("");
+    $("#tempChart").remove();
     let floorID = $("#fname").val();
     axios({
       method: "POST",
-      url: zoneTrakcing,
+      url: "/api/zones/tracking",
       data: {
         floorid: this.floorData[floorID].id,
         zonename: $("#chartID").text(),
       },
     })
       .then((response) => {
+        console.log("dailyData() Response=====>", response);
         if (response.status === 200) {
           if (response.data.length !== 0) {
             let data = response.data;
@@ -501,16 +497,21 @@ class Tracking extends Component {
               },
             });
             window.scrollTo(0, document.body.scrollHeight);
+          } else {
+            window.scrollTo(0, 0);
           }
         }
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
+        if ($("#chartCanvas").children().length !== 0) $("#tempChart").remove();
+        console.log("dailyData() error ======>", error);
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#track-error").text("No data found.");
+          window.scrollTo(0, 0);
         } else {
           $("#track-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -520,29 +521,32 @@ class Tracking extends Component {
   };
 
   /** Weekly tracking data for paricular zone already selected  */
-  weeklyReport = () => {
-    $("#track-error").text("");
+  weeklyReport = (btnId) => {
+    this.optionChange(btnId);
     let floorID = $("#fname").val();
+    $("#tempChart").remove();
+    $("#track-error").text("");
     axios({
       method: "POST",
-      url: zoneWeeklyTracking,
+      url: "/api/zones/weekly/tracking",
       data: {
         floorid: this.floorData[floorID].id,
         zonename: $("#chartID").text(),
       },
     })
       .then((response) => {
+        console.log("weeklyReport() Response=====>", response);
         if (response.status === 200) {
           if (response.data.length !== 0) {
-            console.log(response);
+            // console.log(response);
             let data = response.data;
             var timing = [],
               count = [];
             for (let i = 0; i < data.length; i++) {
               timing.push(
                 data[i].timestamp.substr(8, 2) +
-                  " " +
-                  data[i].timestamp.substr(11, 5)
+                " " +
+                data[i].timestamp.substr(11, 5)
               );
               count.push(data[i].count);
             }
@@ -590,16 +594,21 @@ class Tracking extends Component {
               },
             });
             window.scrollTo(0, document.body.scrollHeight);
+          } else {
+            window.scrollTo(0, 0);
           }
         }
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
+        if ($("#chartCanvas").children().length !== 0) $("#tempChart").remove();
+        console.log("Weekly() error ======>", error);
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#track-error").text("No data found.");
+          window.scrollTo(0, 0);
         } else {
           $("#track-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -609,18 +618,21 @@ class Tracking extends Component {
   };
 
   /** Monthly tracking data for paricular zone already selected  */
-  monthlyReport = () => {
-    $("#track-error").text("");
+  monthlyReport = (btnId) => {
+    this.optionChange(btnId);
     let floorID = $("#fname").val();
+    $("#tempChart").remove();
+    $("#track-error").text("");
     axios({
       method: "POST",
-      url: zoneMontylyTracking,
+      url: "/api/zones/monthly/tracking",
       data: {
         floorid: this.floorData[floorID].id,
         zonename: $("#chartID").text(),
       },
     })
       .then((response) => {
+        console.log("monthlyReport() Response=====>", response);
         if (response.status === 200) {
           if (response.data.length !== 0) {
             let data = response.data;
@@ -674,317 +686,27 @@ class Tracking extends Component {
               },
             });
             window.scrollTo(0, document.body.scrollHeight);
-          }
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        if (error.response.status === 403) {
-          $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
-        } else {
-          $("#track-error").text(
-            "Request Failed with status code (" + error.response.status + ")."
-          );
-        }
-      });
-  };
-
-  /** Plots all tags on the floor map */
-  plotAssets = () => {
-    // API call to get tags data
-    let fname = $("#fname").val();
-    $("#total").text("0");
-    axios({
-      method: "GET",
-      url: employeeTracking + "?floorid=" + this.floorData[fname].id,
-    })
-      .then((response) => {
-        if (response.status === 200) {
-          $("#track-error").text("");
-          let data = response.data;
-          if (data.length !== 0) {
-            let wpx = document.getElementById("temp").clientWidth / this.fWidth;
-            let hpx =
-              document.getElementById("temp").clientHeight / this.fHeight;
-            $("#lastupdated").css("display", "block");
-            let search_id = $("#tagid").val();
-            // Removing already plotted tags on floor map
-            $(".empls").remove();
-            // Iterating through all tags
-            let ind = 0;
-            let totaltags = 0;
-            if (this.flag === "true") {
-              for (let i = 0; i < data.length; i++) {
-                // creating date object
-                let timestamp =
-                  new Date() -
-                  new Date(
-                    data[i].tagid.lastseen.substring(0, 10) +
-                      " " +
-                      data[i].tagid.lastseen.substring(11, 19)
-                  );
-                // comparing timestamp to get timeinterval
-                if (timestamp <= 2 * 60 * 1000) {
-                  this.jsonData = [
-                    ...this.jsonData,
-                    {
-                      id: data[i].tagid.tagid,
-                      x: data[i].tagid.x,
-                      y: data[i].tagid.y,
-                    },
-                  ];
-                  // Checking for the search mac id in the list of all asset data
-                  if (data[i].tagid.tagid === search_id) {
-                    ind = i;
-                    let childDiv1 = document.createElement("div");
-                    $(childDiv1).attr("id", data[i].tagid.tagid);
-                    $(childDiv1).attr("class", "empls");
-                    $(childDiv1).attr(
-                      "title",
-                      "Employee Name  : " +
-                        data[i].name +
-                        "\nTagid : " +
-                        data[i].tagid.tagid
-                    );
-                    $(childDiv1).attr(
-                      "style",
-                      "position: absolute; cursor: pointer; left:" +
-                        wpx * parseFloat(data[i].tagid.x) +
-                        "px; top:" +
-                        (parseInt(hpx * parseFloat(data[i].tagid.y)) - 20) +
-                        "px;"
-                    );
-                    let icon = document.createElement("i");
-                    $(icon).attr("class", "fa fa-street-view");
-                    $(icon).attr("style", "font-size: 25px");
-                    $(childDiv1).append(icon);
-                    $("#temp").append(childDiv1);
-                    break;
-                  }
-                }
-              }
-            } else {
-              for (let i = 0; i < data.length; i++) {
-                let timestamp =
-                  new Date() -
-                  new Date(
-                    data[i].tagid.lastseen.substring(0, 10) +
-                      " " +
-                      data[i].tagid.lastseen.substring(11, 19)
-                  );
-                // comparing timestamp to get timeinterval
-                if (timestamp <= 2 * 60 * 1000) {
-                  this.jsonData = [
-                    ...this.jsonData,
-                    {
-                      id: data[i].tagid.tagid,
-                      x: data[i].tagid.x,
-                      y: data[i].tagid.y,
-                    },
-                  ];
-                  totaltags = totaltags + 1;
-                  ind = i;
-                  let childDiv1 = document.createElement("div");
-                  $(childDiv1).attr("id", data[i].tagid.tagid);
-                  $(childDiv1).attr(
-                    "title",
-                    "Employee Name  : " +
-                      data[i].name +
-                      "\nTagid : " +
-                      data[i].tagid.tagid
-                  );
-                  $(childDiv1).attr(
-                    "style",
-                    "position: absolute; cursor: pointer; left:" +
-                      wpx * parseFloat(data[i].tagid.x) +
-                      "px; top:" +
-                      (parseInt(hpx * parseFloat(data[i].tagid.y)) - 20) +
-                      "px;"
-                  );
-                  let icon = document.createElement("i");
-                  $(icon).attr("class", "fa fa-street-view");
-                  $(icon).attr("style", "font-size: 25px");
-                  $(childDiv1).append(icon);
-                  $("#temp").append(childDiv1);
-                }
-              }
-              $("#total").text(totaltags);
-            }
-            $("#timing").text(
-              data[ind].tagid.lastseen.substring(0, 10) +
-                " " +
-                data[ind].tagid.lastseen.substring(11, 19)
-            );
-            if ($("#temp").children("div").length === 0) {
-              $("#track-error").text("No asset detected.");
-            } else {
-              $("#track-error").text("");
-            }
           } else {
-            $("#track-error").text(
-              "No Asset is turned on, Please check System Health Page."
-            );
+            window.scrollTo(0, 0);
           }
-        } else {
-          $("#track-error").text("Unable to get Tags Data.");
         }
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
+        if ($("#chartCanvas").children().length !== 0) $("#tempChart").remove();
+        console.log("dailyData() error ======>", error);
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#track-error").text("No data found.");
+          window.scrollTo(0, 0);
         } else {
           $("#track-error").text(
             "Request Failed with status code (" + error.response.status + ")."
           );
         }
       });
-  };
-
-  /** For panic alter highlights employee location on particular floor */
-  panicFunction = () => {
-    // finding out the panic tags
-    axios({
-      method: "GET",
-      url: panicAlert,
-    })
-      .then((response) => {
-        if (response.status === 201 || response.status === 200) {
-          let currTime = new Date();
-          if (response.data.length !== 0) {
-            let panicData = response.data;
-            for (let i = 0; i < panicData.length; i++) {
-              let timestamp = new Date(
-                panicData[i].timestamp.substring(0, 10) +
-                  " " +
-                  panicData[i].timestamp.substring(11, 19)
-              );
-              if (currTime - timestamp <= 30 * 1000) {
-                if ($("#" + panicData[i].asset.macAddress).length === 1) {
-                  $("#" + panicData[i].asset.macAddress).attr(
-                    "class",
-                    "panicIcon blink"
-                  );
-                }
-              }
-            }
-          }
-        }
-      })
-      .catch((error) => {
-        if (error.response.status === 403) {
-          $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
-        } else {
-          $("#track-error").text(
-            "Request Failed with status code (" + error.response.status + ")."
-          );
-        }
-      });
-  };
-
-  /** Zoomin the floor map image on button click */
-  zoomin = () => {
-    // Changes the image width and height
-    var myImg = document.getElementById("temp");
-    var currWidth = myImg.clientWidth;
-    myImg.style.width = currWidth + this.xpixel + "px";
-    myImg.style.height = parseFloat(myImg.style.width) / this.c + "px";
-
-    // Changes the tag position based on floor map size
-    // Iterating through all the tags plotted on floor map
-    for (let i = 0; i < this.jsonData.length; i++) {
-      // Changing x coordinate of tag
-      $("#" + this.jsonData[i].id).css(
-        "left",
-        (parseFloat(myImg.clientWidth) / this.fWidth) * this.jsonData[i].x
-      );
-      $("#" + this.jsonData[i].id + "tag").css(
-        "left",
-        (parseFloat(myImg.clientWidth) / this.fWidth) * this.jsonData[i].x - 16
-      );
-      // Changing y coordinate of tag
-      $("#" + this.jsonData[i].id).css(
-        "top",
-        (parseFloat(myImg.clientHeight) / this.fHeight) * this.jsonData[i].y -
-          20
-      );
-      $("#" + this.jsonData[i].id + "tag").css(
-        "top",
-        (parseFloat(myImg.clientHeight) / this.fHeight) * this.jsonData[i].y -
-          16
-      );
-    }
-  };
-
-  /** Zoomout the floor map image on button click */
-  zoomout = () => {
-    // Changes the image width and height
-    var myImg = document.getElementById("temp");
-    var currWidth = myImg.clientWidth;
-    myImg.style.width = currWidth - this.xpixel + "px";
-    myImg.style.height = parseFloat(myImg.style.width) / this.c + "px";
-
-    // Changes the tag position based on floor map size
-    // Iterating through all the tags plotted on floor map
-    // if (parseFloat(myImg.style.width) > this.imgWidth)
-    for (let i = 0; i < this.jsonData.length; i++) {
-      // Changing x coordinate of tag
-      $("#" + this.jsonData[i].id).css(
-        "left",
-        (parseFloat(myImg.clientWidth) / this.fWidth) * this.jsonData[i].x
-      );
-      $("#" + this.jsonData[i].id + "tag").css(
-        "left",
-        (parseFloat(myImg.clientWidth) / this.fWidth) * this.jsonData[i].x - 16
-      );
-      // Changing y coordinate of tag
-      $("#" + this.jsonData[i].id).css(
-        "top",
-        (parseFloat(myImg.clientHeight) / this.fHeight) * this.jsonData[i].y -
-          20
-      );
-      $("#" + this.jsonData[i].id + "tag").css(
-        "top",
-        (parseFloat(myImg.clientHeight) / this.fHeight) * this.jsonData[i].y -
-          16
-      );
-    }
-  };
-
-  /** Method to search tag plotted on floor map */
-  search = () => {
-    let id = $("#tagid").val();
-    $("#track-error").text("");
-    if (id.length === 0) {
-      $("#track-error").text("Please enter Employee Tag ID.");
-    } else if (!id.match("([A-Za-z0-9]{2}[-]){5}([A-Za-z0-9]){2}")) {
-      $("#track-error").text("Invalid Tag ID entered.");
-    } else if (id.length !== 0 && $("#" + id).length === 1) {
-      this.flag = "true";
-      $("#temp").children("div").css("display", "none");
-      $("#" + id).css("display", "block");
-      $("#" + id + "tag").css("display", "block");
-    } else {
-      $("#track-error").text("Asset Not Found.");
-    }
-  };
-
-  /** Method to zoomIn and zoomOut image on mouse scroll */
-  hadleMouseWheel = (evt) => {
-    if (evt.deltaY > 0) {
-      this.zoomout();
-    } else if (evt.deltaY < 0) {
-      this.zoomin();
-    }
   };
 
   /** Terminate the session on forbidden (403) error */
@@ -994,6 +716,25 @@ class Tracking extends Component {
     this.props.handleLogin(0);
   };
 
+  search = () => {
+    let id = $("#tagid").val();
+    console.log("searchhhhh====",id);
+    $("#track-error").text("");
+    if (id.length === 0) {
+      $("#track-error").text("Please enter Employee Tag ID.");
+    } else if (!id.match("([A-Za-z0-9]{2}[-]){5}([A-Za-z0-9]){2}")) {
+      $("#track-error").text("Invalid Tag ID entered.");
+    } else if (id.length !== 0) {
+      this.flag = "true";
+      console.log("SEarch====",id);
+      // $("#temp").children("div").css("display", "none");
+      $("#temp #empls").css("display", "none");
+      $("#temp .emp_" + id).css("display", "block");
+    } else {
+      $("#track-error").text("Asset Not Found.");
+    }
+  };
+
   /** Redern the html content on the browser */
   render() {
     return (
@@ -1001,20 +742,11 @@ class Tracking extends Component {
         <Helmet>
           <title>Realtime Tracking</title>
         </Helmet>
-        <div className="panel">
+        <div style={{ float: "right", width: "91%", marginTop: "90px" }}>
           <span className="main-heading">REALTIME TRACKING</span>
-          <span
-            style={{ float: "right", fontSize: "18px", display: "none" }}
-            className="sub-heading"
-            id="lastupdated"
-          >
-            Last Updated : <span id="timing">00:00:00</span>{" "}
-          </span>
-          <br />
-          <img alt="" src="../images/Tiles/Underline.png" style={Underline} />
-          <div className="container fading" style={{ marginTop: "50px" }}>
+          <p className="underLine" />
+          <div className="container fading">
             <div className="row">
-              {/* Input field for Tag MAC ID */}
               <div className="input-group">
                 <span className="label">Floor Name : </span>
                 <select
@@ -1026,12 +758,9 @@ class Tracking extends Component {
                 ></select>
               </div>
             </div>
-            {/* Element for displaying error message */}
-            <p className="error-msg" id="floor-error"></p>
+
             <div id="floorBlock" style={{ display: "none" }}>
-              {/* <div className="row"><hr></hr></div> */}
               <div className="row">
-                {/* Input field for Tag MAC ID */}
                 <div className="input-group">
                   <span className="label">Tag MAC ID : </span>
                   <input
@@ -1042,7 +771,6 @@ class Tracking extends Component {
                     onClick={() => $("#track-error").text("")}
                   />
                 </div>
-                {/* Button to search for tag */}
                 <div className="input-group">
                   <input
                     type="button"
@@ -1051,7 +779,6 @@ class Tracking extends Component {
                     className="btn success-btn"
                   />
                   &nbsp;&nbsp;
-                  {/* Button to clear serach data */}
                   <input
                     type="button"
                     value="Clear"
@@ -1064,69 +791,74 @@ class Tracking extends Component {
                     className="btn success-btn"
                   />
                 </div>
-                {/* Element for displaying error message */}
-                <p className="error-msg" id="track-error"></p>
+
+                <span
+                  style={{
+                    float: "right",
+                    fontSize: "18px",
+                    display: "none",
+                    marginRight: "20px",
+                  }}
+                  className="sub-heading"
+                  id="lastupdated"
+                >
+                  Last Updated : <span id="timing">00:00:00</span>{" "}
+                </span>
               </div>
-              <button className="btn btn-success" onClick={this.downloadpdf}>
-                Download PDF
-              </button>
+              <p className="error-msg" id="track-error"></p>
               <div className="row sub-heading" style={{ color: "black" }}>
                 <hr></hr>
                 <div className="row">
-                  Total Tags :{" "}
+                  Total Tags :
                   <u>
                     <span id="total">0</span>
                   </u>
                 </div>
               </div>
-              <div className="row">
-                {/* Block to display floor map image */}
+              <div>
                 <div
                   id="temp"
                   style={{
                     display: "block",
                     position: "relative",
+                    width: "fit-content",
                   }}
-                  onWheel={this.hadleMouseWheel}
                 >
                   <img id="tempimg" alt=""></img>
                 </div>
               </div>
-
               <br></br>
               <div className="row" id="graphBlock" style={{ display: "none" }}>
                 <hr></hr>
                 <div className="sub-heading">
-                  Employee Count for Zone : <span id="chartID"></span>
+                  Employee Occupency for : <span id="chartID"></span>
                 </div>
                 <br></br>
-                <div className="sub-heading" style={{ color: "lightgray" }}>
-                  <div
-                    style={{
-                      display: "inline-block",
-                      marginRight: "20px",
-                      cursor: "pointer",
-                    }}
-                    onClick={this.dailyData}
+                <div id="graph_opt" style={{ display: "flex" }}>
+                  <button
+                    id="opt0"
+                    className="heading"
+                    style={graphBtn}
+                    onClick={() => this.dailyData("opt0")}
                   >
                     Daily Count
-                  </div>
-                  <div
-                    style={{
-                      display: "inline-block",
-                      marginRight: "20px",
-                      cursor: "pointer",
-                    }}
-                    onClick={this.weeklyReport}
+                  </button>
+                  <button
+                    id="opt1"
+                    className="heading"
+                    style={graphBtn}
+                    onClick={() => this.weeklyReport("opt1")}
                   >
                     Weekly Count
-                  </div>
-                  <div
-                    style={{ display: "inline-block", cursor: "pointer" }}
-                    onClick={this.monthlyReport}
+                  </button>
+                  <button
+                    id="opt2"
+                    className="heading"
+                    style={graphBtn}
+                    onClick={() => this.monthlyReport("opt2")}
                   >
                     Monthly Count
-                  </div>
+                  </button>
                 </div>
                 <br></br>
                 <div id="chartCanvas"></div>

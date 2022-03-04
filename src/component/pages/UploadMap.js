@@ -24,11 +24,6 @@ class UploadMap extends Component {
     };
   }
 
-  /** Method is called on Component Load */
-  componentDidMount() {
-    // linkClicked(2);
-  }
-
   /** To change the state of component on entering the values in input fields */
   handleChanges = (e) => {
     $("#upload-error").text("");
@@ -43,14 +38,12 @@ class UploadMap extends Component {
     this.setState({
       image: e.target.files[0],
     });
-    // $("#temp").css("display", "block");
-    // var image = $("#upimg");
-    // image.src = URL.createObjectURL(e.target.files[0]);
   };
 
   /** Method to upload a floor map with all the details */
   submit = (e) => {
     $("#upload-error").text("");
+    $("#upload-success").text("");
     if (
       this.state.image !== null &&
       this.state.name !== "" &&
@@ -82,7 +75,7 @@ class UploadMap extends Component {
           if (error.response.status === 403) {
             $("#upload_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again"
+              "User Session has timed out. Please Login again"
             );
           } else {
             $("#upload-error").text(
@@ -98,7 +91,15 @@ class UploadMap extends Component {
     $("input[type=number]").val("");
   };
 
-  delete = () => {};
+  delete = () => {
+    axios({ method: "DELETE", url: "/api/uploadmap", data: { id: "10" } })
+      .then((res) => {
+        console.log("==========>", res);
+      })
+      .catch((error) => {
+        console.log("====>", error);
+      });
+  };
 
   sessionTimeout = () => {
     $("#upload_displayModal").css("display", "none");
@@ -119,10 +120,10 @@ class UploadMap extends Component {
           <br />
           <img alt="" src="../images/Tiles/Underline.png" style={Underline} />
           <div className="container fading" style={{ marginTop: "50px" }}>
+            <p className="error-msg" id="upload-error"></p>
+            <p className="success-msg" id="upload-success"></p>
             <div className="row">
-              {/* Form for uploading the floor map */}
               <form id="uploadForm">
-                {/* Input field for Floor Name */}
                 <div className="input-group">
                   <span className="label">Floor Name : </span>
                   <input
@@ -176,6 +177,7 @@ class UploadMap extends Component {
                 </div>
                 {/* Button for uploading floor map */}
                 <div className="input-group">
+                  <span className="label"></span>
                   <input
                     type="submit"
                     value="Upload Map"
@@ -185,10 +187,8 @@ class UploadMap extends Component {
                   />
                 </div>
               </form>
-              <p className="error-msg" id="upload-error"></p>
-              <p className="success-msg" id="upload-success"></p>
             </div>
-            <div className="row" style={{ display: "none" }}>
+            {/* <div className="row" style={{ display: "block" }}>
               <button
                 className="btn success-btn"
                 onClick={() => {
@@ -203,9 +203,7 @@ class UploadMap extends Component {
               >
                 Delete Floor Map
               </button>
-              {/* Form to delete uploaded floor map */}
-              <form id="deleteuploadForm" style={{ display: "none" }}>
-                {/* Input field for Floor Name */}
+              <form id="deleteuploadForm" style={{ display: "block" }}>
                 <div className="input-group">
                   <span className="label">Floor Name : </span>
                   <input
@@ -216,7 +214,6 @@ class UploadMap extends Component {
                     placeholder="Name of Floor Map"
                   />
                 </div>
-                {/* Button for uploading floor map */}
                 <div className="input-group">
                   <input
                     type="submit"
@@ -228,7 +225,6 @@ class UploadMap extends Component {
               </form>
             </div>
             <div className="row">
-              {/* Block to display floor map image on selecting image */}
               <div
                 id="temp"
                 style={{
@@ -246,7 +242,7 @@ class UploadMap extends Component {
                   id="upimg"
                 />
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
         {/* Display modal to display error messages */}

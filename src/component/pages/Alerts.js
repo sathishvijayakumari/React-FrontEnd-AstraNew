@@ -4,8 +4,6 @@ import { linkClicked } from "../navbar/Navbar";
 import axios from "axios";
 import $ from "jquery";
 import "./Styling.css";
-import { alertData } from "../../urls/apis";
-
 const Underline = {
   width: "75px",
   height: "9px",
@@ -28,9 +26,9 @@ class Alerts extends Component {
 
   /** On page load call a method and sets interval for the same */
   componentDidMount() {
-    linkClicked(6);
-    this.getAlertDate();
-    this.interval = setInterval(this.getAlertDate, 15 * 1000);
+    linkClicked(4);
+    this.getAlertData();
+    this.interval = setInterval(this.getAlertData, 15 * 1000);
   }
 
   /** On page unload clears the interval set before */
@@ -39,56 +37,39 @@ class Alerts extends Component {
   }
 
   /** Get alert data for all the tags and displays information in tabular format */
-  getAlertDate = () => {
+  getAlertData = () => {
     document.getElementById("alert-error").innerHTML = "";
-    // API call
-    axios({
-      method: "GET",
-      url: alertData,
-    })
+    $("#alertsDetails1").empty();
+    let alertTypeId = $("#type").val();
+    console.log('======>', alertTypeId);
+    axios({ method: "POST", url: "/api/alerts", data: { value: alertTypeId } })
       .then((response) => {
-        if (response.status === 200) {
-          console.log(response);
+        console.log('response======>', response);
+        if (response.status === 200 || response.status === 201) {
           if (response.data.length !== 0) {
-            $("#alertBlock").css("display", "block");
-            this.data = response.data;
-            let alertdata = [];
+            let data = response.data;
             let i = 0;
-            for (i = this.data.length - 1; i >= 0; i--) {
-              var alert;
-              if (this.data[i].value === 1) alert = "Panic Button";
-              else if (this.data[i].value === 3) alert = "Free Fall";
-              else if (this.data[i].value === 4) alert = "No activity";
-              else if (this.data[i].value === 5) alert = "Low Battery";
-              alertdata.push(
-                "<tr class=" +
-                  this.data[i].value +
-                  ">" +
-                  "<td>" +
-                  this.data[i].asset.tagid +
-                  "</td>" +
-                  // "<td>" +
-                  // this.data[i].asset.tagType +
-                  // "</td>" +
-                  "<td>" +
-                  alert +
-                  "</td>" +
-                  "<td>" +
-                  this.data[i].timestamp.substring(0, 10) +
-                  " " +
-                  this.data[i].timestamp.substring(11, 19) +
-                  "</td>" +
-                  "</tr>"
+            let sno = 1;
+            for (i = data.length - 1; i >= 0; i--) {
+              var alert = "";
+              let timestamp =data[i].timestamp.substring(0, 19).replace("T"," ");
+              if (data[i].value === 1) alert = "Panic Button";
+              else if (data[i].value === 3) alert = "Free Fall";
+              else if (data[i].value === 4) alert = "No activity";
+              else if (data[i].value === 5) alert = "Low Battery";
+              $("#alertsDetails1").append(
+                "<tr>" +
+                "<td>" + (sno) + "</td>" +
+                "<td>" + data[i].asset.tagid + "</td>" +
+                "<td>" + data[i].asset.name + "</td>" +
+                "<td>" + alert + "</td>" +
+                "<td>" + timestamp + "</td>" +
+                "</tr>"
               );
+              sno += 1;
             }
-            this.setState({ alertList: [...alertdata] });
-            this.numberOfPages = Math.ceil(
-              alertdata.length / this.numberPerPage
-            );
-            this.currentRowCount = i;
-            this.loadList();
           } else {
-            $("#alert-error").text("No alert is genereated.");
+            $("#alert-error").text("No alert is generated.");
           }
         } else {
           $("#alert-error").text("Unable to fetch Alert Data.");
@@ -97,73 +78,17 @@ class Alerts extends Component {
       .catch((error) => {
         if (error.response.status === 403) {
           $("#alert_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
+          $("#content").text("User Session has timed out. Please Login again");
+        }  else if(error.response.status === 404) {
+          $("#alert-error").text(
+            "No Data Found."
           );
-        } else {
+        }else {
           $("#alert-error").text(
             "Request Failed with status code (" + error.response.status + ")."
           );
         }
       });
-  };
-
-  /** Code for adding pagination */
-  loadList = () => {
-    let begin = (this.currentPage - 1) * this.numberPerPage;
-    let end = begin + this.numberPerPage;
-    $("#currentpage").text(this.currentPage);
-    $("#numberofpages").text(
-      Math.ceil(this.state.alertList.length / this.numberPerPage)
-    );
-    this.pageList = this.state.alertList.slice(begin, end);
-    $("#rowCount").text(this.pageList.length);
-
-    $("#alertTable").empty();
-    $("#alertTable").append(
-      " <tr><th>ASSET MAC ID</th><th>EVENT</th><th>TIMESTAMP</th></tr>"
-    );
-    for (let r = 0; r < this.pageList.length; r++) {
-      $("#alertTable").append(this.pageList[r]);
-    }
-    document.getElementById("next").disabled =
-      this.currentPage === this.numberOfPages ? true : false;
-    document.getElementById("previous").disabled =
-      this.currentPage === 1 ? true : false;
-  };
-
-  /** Forword moivng pages */
-  nextPage = () => {
-    this.currentPage = this.currentPage + 1;
-    this.loadList();
-  };
-
-  /** Backword moving pages */
-  previousPage = () => {
-    if (this.currentPage > 0) this.currentPage = this.currentPage - 1;
-    this.loadList();
-  };
-
-  /** Searching data based on filter option selected */
-  search = () => {
-    $("#tempTable").empty();
-    let type = $("#type").val();
-    let data = this.state.alertList;
-    $("#alert-error").text("");
-    $("#tempTable").css("display", "table");
-    $("#alertTable").css("display", "none");
-    $("#opt").css("display", "none");
-    $("#tempTable").append(
-      "<tr><th>ASSET MAC ID</th><th>EVENT</th><th>TIMESTAMP</th></tr>"
-    );
-    for (let i = 0; i < data.length; i++) {
-      if (data[i].substring(10, 11) === type) {
-        $("#tempTable").append(data[i]);
-      }
-    }
-    if ($("#tempTable").children("tr").length === 1) {
-      $("#alert-error").text("No data found.");
-    }
   };
 
   /** Terminate the session on forbidden (403) error */
@@ -189,41 +114,18 @@ class Alerts extends Component {
               {/* Select list for tag type */}
               <div className="input-group">
                 <span className="label">Event Type : </span>
-                <select name="type" id="type">
+                <select name="type" id="type" onChange={this.getAlertData}>
                   <option value="1">Panic Button</option>
                   <option value="3">Free Fall</option>
                   <option value="4">No Activity</option>
                   <option value="5">Low Battery</option>
                 </select>
               </div>
-              {/* Button for searching tag */}
-              <div className="input-group">
-                <input
-                  type="button"
-                  value="Search"
-                  onClick={this.search}
-                  className="btn success-btn"
-                />
-                &nbsp;&nbsp;
-                {/* Clearing search data and hiding search result table */}
-                <input
-                  type="button"
-                  value="Clear"
-                  onClick={() => {
-                    document.getElementById("tempTable").style.display = "none";
-                    document.getElementById("alertTable").style.display =
-                      "table";
-                    document.getElementById("opt").style.display = "block";
-                    document.getElementById("alert-error").innerHTML = "";
-                  }}
-                  className="btn success-btn"
-                />
-              </div>
             </div>
             <hr />
             <br></br>
             <p className="error-msg" id="alert-error"></p>
-            <div className="row" id="alertBlock" style={{ display: "none" }}>
+            <div className="row" id="alertBlock">
               <span className="heading">ALERT INFORMATION</span>
               <br />
               <img
@@ -236,50 +138,20 @@ class Alerts extends Component {
                   position: "absolute",
                 }}
               />
-              {/* Table to display alert msgs */}
-              <table
-                id="tempTable"
-                style={{
-                  marginTop: "20px",
-                  marginBottom: "30px",
-                  display: "none",
-                }}
-              ></table>
-
-              {/* Table to display alert msgs */}
-              <table
-                id="alertTable"
-                style={{ marginTop: "20px", marginBottom: "30px" }}
-              ></table>
-              {/* Page navigation options for sensor tags */}
-              <div
-                id="opt"
-                style={{
-                  textAlign: "center",
-                }}
-              >
-                <p style={{ float: "left", fontFamily: "Roboto-Regular" }}>
-                  ( <span id="currentpage">0</span> /
-                  <span id="numberofpages">0</span> )
-                </p>
-                <button
-                  id="previous"
-                  onClick={this.previousPage}
-                  style={{ fontFamily: "Roboto-Medium" }}
-                >
-                  Previous
-                </button>
-                <button
-                  id="next"
-                  onClick={this.nextPage}
-                  style={{ fontFamily: "Roboto-Medium" }}
-                >
-                  Next
-                </button>
-                <p style={{ float: "right", fontFamily: "Roboto-Regular" }}>
-                  Row count : <span id="rowCount">0</span>
-                </p>
-              </div>
+              
+              <table id="alertDet1"
+              style={{ marginTop: "20px", marginBottom: "30px" }}>
+              <thead>
+                <tr>
+                  <th>Sl.No</th>
+                  <th>MAC ID</th>
+                  <th>EMPLOYEE NAME</th>
+                  <th>ALERT TYPE</th>
+                  <th>LAST SEEN</th>
+                </tr>
+              </thead>
+              <tbody id="alertsDetails1"></tbody>
+            </table>
             </div>
           </div>
         </div>

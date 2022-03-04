@@ -107,15 +107,20 @@ class ZoneConfig extends Component {
       console.log(data);
       axios({ method: "POST", url: zoneConfiguration, data: data })
         .then((response) => {
-          console.log(response);
+          // console.log(response);
           if (response.status === 201) {
+            $("#zonename").val("");
+            $("#x").val("");
+            $("#y").val("");
+            $("#x1").val("");
+            $("#y1").val("");
             $("#conf-success").text("Zone is registered successfully.");
           } else {
             $("#conf-error").text("Unable to registered zone.");
           }
         })
         .catch((error) => {
-          console.log(error);
+          // console.log(error);
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
@@ -145,7 +150,7 @@ class ZoneConfig extends Component {
         data: { floorid: floorid, zonename: name },
       })
         .then((response) => {
-          console.log(response);
+          // console.log(response);
           if (response.status === 200) {
             $("#conf-success").text("Zone is deleted successfully.");
             $("#del_form").css("display", "none");
@@ -154,7 +159,7 @@ class ZoneConfig extends Component {
           }
         })
         .catch((error) => {
-          console.log(error);
+          // console.log(error);
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(

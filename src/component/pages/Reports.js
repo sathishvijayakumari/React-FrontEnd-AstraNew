@@ -13,61 +13,45 @@ const Underline = {
 };
 
 class Reports extends Component {
-  /** Method is called on Component Load */
   componentDidMount() {
-    // API call to get the all asset details
+    $("#report-error").text("");
     axios({ method: "GET", url: employeeRegistration + "?key=all" })
       .then((response) => {
         if (response.status === 200 || response.status === 201) {
           if (response.data.length !== 0) {
             $("reportsTable").empty();
-            var dt = response.data;
-            for (let i = 0; i < dt.length; i++) {
+            const data = response.data;
+            console.log("REPORTS DATA====>", data);
+            for (let i = 0; i < data.length; i++) {
               let tagid = "NOT ASSIGNED";
               let intime = "--:--:--";
               let lastseen = "--:--:--";
-              if (dt[i].tagid) {
-                tagid = dt[i].tagid.tagid;
-                intime =
-                  dt[i].intime.substr(0, 10) + " " + dt[i].intime.substr(11, 8);
-                lastseen =
-                  dt[i].tagid.lastseen.substr(0, 10) +
-                  " " +
-                  dt[i].tagid.lastseen.substr(11, 8);
+              if (data[i].tagid) {
+                tagid = data[i].tagid;
+                intime = data[i].intime.substring(0, 19).replace("T", " ");
+                lastseen = data[i].lastseen.substring(0, 19).replace("T", " ");
               }
               $("#reportsTable").append(
                 "<tr>" +
-                  "<td>" +
-                  (1 + i) +
-                  "</td>" +
-                  "<td>" +
-                  dt[i].name +
-                  "</td>" +
-                  "<td>" +
-                  dt[i].email +
-                  "</td>" +
-                  "<td>" +
-                  tagid +
-                  "</td>" +
-                  "<td>" +
-                  intime +
-                  "</td>" +
-                  "<td>" +
-                  lastseen +
-                  "</td>" +
-                  "</tr>"
+                "<td>" + (1 + i) + "</td>" +
+                "<td>" + data[i].name + "</td>" +
+                "<td>" + data[i].email + "</td>" +
+                "<td>" + tagid + "</td>" +
+                "<td>" + intime + "</td>" +
+                "<td>" + lastseen + "</td>" +
+                "</tr>"
               );
             }
+          } else{
+            $("#report-error").text("No Employee data found.");
           }
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.log("error====>", error);
         if (error.response.status === 403) {
           $("#report-displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
         } else {
           $("#report-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -95,10 +79,10 @@ class Reports extends Component {
           <br />
           <img alt="" src="../images/Tiles/Underline.png" style={Underline} />
 
-          <div className="container fading" style={{ marginTop: "50px" }}>
+          <div className="container fading" style={{ marginTop: "20px" }}>
             <p className="error-msg" id="report-error"></p>
             {/* SIGNAL REPEATER TAGS TABLE */}
-            <div className="container">
+            <div className="container" style={{ marginTop: "20px" }} >
               <span className="heading">Employee Daily Report</span>
               <br />
               <img

@@ -3,15 +3,15 @@ import axios from "axios";
 import "./Styling.css";
 import $ from "jquery";
 import {
-  employeeTag,
+  employeeRegistration,
   floorMap,
   irqSensor,
   signalRepeator,
   tempertureSensor,
 } from "../../urls/apis";
+import * as XLSX from "xlsx";
 
 class AssetReg extends Component {
-  /** On page load get list of floor map for registering sensors */
   componentDidMount = () => {
     axios({
       method: "GET",
@@ -58,40 +58,46 @@ class AssetReg extends Component {
       });
   };
 
-  /** To change the state of component on entering the values in input fields */
-  // handleChanges = (e) => {
-  //   this.setState({ [e.target.name]: e.target.value });
-  // };
-
-  /** Displays all input fields to get details of employees for registering tracking tags */
   displayTrackingForm = () => {
     let type = $("#type").val();
     this.setState({ type: type });
-
-    if (type === "Temperature/Humidity Sensor")
+    if (type === "Temperature/Humidity Sensor") {
       $("#temp_form").css("display", "block");
-    else $("#temp_form").css("display", "none");
+      $("#bluk_reg").css("display", "none");
+    } else $("#temp_form").css("display", "none");
 
-    if (type === "IAQ Sensor") $("#iaq_form").css("display", "block");
-    else $("#iaq_form").css("display", "none");
+    if (type === "IAQ Sensor") {
+      $("#iaq_form").css("display", "block");
+      $("#bluk_reg").css("display", "none");
+    } else $("#iaq_form").css("display", "none");
+
+    if (type === "Signal Repeater") {
+      $("#bluk_reg").css("display", "none");
+    }
+
+    if (type === "Employee") {
+      $("#emp_form").css("display", "block");
+      $("#bluk_reg").css("display", "block");
+    } else {
+      $("#emp_form").css("display", "none");
+    }
   };
 
-  /** Displays Delete tag form on clicking Delete Tag Button */
   show = () => {
     $("input[type=text]").val("");
     $("input[type=email]").val("");
+    $("#bluk_form").css("display", "none");
+
     document.getElementById("delete-form").style.display =
       $("#delete-form").css("display") === "none" ? "block" : "none";
     window.scrollTo(0, document.body.scrollHeight);
   };
 
-  /** Hides all error and success messages displayed on all button clicks */
   hide = () => {
     $("#conf-error").text("");
     $("#conf-success").text("");
   };
 
-  /** Register the both sensor and tracking tags */
   register = (e) => {
     this.hide();
     e.preventDefault();
@@ -114,6 +120,7 @@ class AssetReg extends Component {
         y2: $("#y1").val(),
         id: $("#fname").val(),
       };
+      console.log("Temperature/Humidity========>", data);
       if (
         data.x1 !== "" &&
         data.y1 !== "" &&
@@ -139,7 +146,7 @@ class AssetReg extends Component {
             if (error.response.status === 403) {
               $("#config_displayModal").css("display", "block");
               $("#content").text(
-                "User Session has timed out.<br> Please Login again."
+                "User Session has timed out. Please Login again."
               );
             } else if (error.response.status === 400) {
               $("#conf-error").text("Tag is already registered.");
@@ -161,6 +168,7 @@ class AssetReg extends Component {
         y: $("#yval").val(),
         id: $("#fname1").val(),
       };
+      console.log("IAQ========>", data);
       if (data.x !== "" && data.y !== "" && data.id !== "") {
         axios({
           method: "POST",
@@ -175,11 +183,11 @@ class AssetReg extends Component {
             }
           })
           .catch((error) => {
-            console.log(error);
+            // console.log(error);
             if (error.response.status === 403) {
               $("#config_displayModal").css("display", "block");
               $("#content").text(
-                "User Session has timed out.<br> Please Login again."
+                "User Session has timed out. Please Login again."
               );
             } else if (error.response.status === 400) {
               $("#conf-error").text("Tag is already registered.");
@@ -196,40 +204,55 @@ class AssetReg extends Component {
       }
     } else if ($("#type").val() === "Employee") {
       data = {
-        macaddress: $("#tagid").val(),
+        tagid: $("#tagid").val(),
+        name: $("#emp_name").val(),
+        role: $("#emp_role").val(),
+        email: $("#emp_email").val(),
+        empid: $("#emp_id").val(),
+        phone: $("#emp_phoneNo").val(),
       };
-      axios({
-        method: "POST",
-        url: employeeTag,
-        data: data,
-      })
-        .then((response) => {
-          if (response.status === 201 || response.status === 200) {
-            $("#conf-success").text("Employee Tag registered successfully.");
-          } else {
-            $("#conf-error").text("Unable to Register Tag.");
-          }
+      console.log("Employee========>", data);
+      if (
+        data.tagid.length !== 0 &&
+        data.name.length !== 0 &&
+        data.role.length !== 0
+      ) {
+        axios({
+          method: "POST",
+          url: employeeRegistration,
+          data: data,
         })
-        .catch((error) => {
-          if (error.response.status === 403) {
-            $("#config_displayModal").css("display", "block");
-            $("#content").text(
-              "User Session has timed out.<br> Please Login again."
-            );
-          } else if (error.response.status === 400) {
-            $("#conf-error").text("Employee Tag is already registered.");
-          } else {
-            $("#conf-error").text(
-              "Request Failed with status code (" +
-                error.response.status +
-                ") : Employee Tag"
-            );
-          }
-        });
+          .then((response) => {
+            if (response.status === 201 || response.status === 200) {
+              $("#conf-success").text("Employee Tag Registered Successfully.");
+            } else {
+              $("#conf-error").text("Unable to Register Tag.");
+            }
+          })
+          .catch((error) => {
+            if (error.response.status === 403) {
+              $("#config_displayModal").css("display", "block");
+              $("#content").text(
+                "User Session has timed out. Please Login again."
+              );
+            } else if (error.response.status === 400) {
+              $("#conf-error").text("Employee Tag is already registered.");
+            } else {
+              $("#conf-error").text(
+                "Request Failed with status code (" +
+                  error.response.status +
+                  ") : Employee Tag"
+              );
+            }
+          });
+      } else {
+        $("#conf-error").text("Please provide all information.");
+      }
     } else {
       data = {
         macaddress: $("#tagid").val(),
       };
+      console.log("SignalRepeater========>", data);
       axios({
         method: "POST",
         url: signalRepeator,
@@ -248,7 +271,7 @@ class AssetReg extends Component {
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again."
+              "User Session has timed out. Please Login again."
             );
           } else if (error.response.status === 400) {
             $("#conf-error").text("Signal Repeater is already registered.");
@@ -261,15 +284,12 @@ class AssetReg extends Component {
           }
         });
     }
-    // !data.emailid.match(
-    //   "^[a-zA-Z][a-zA-Z0-9_.-]+@[a-zA-Z0-9]+[.]{1}[a-zA-Z]+$"
-    // )
+
     $("input[type=text]").val("");
     $("input[type=email]").val("");
     $("input[type=number]").val("");
   };
 
-  /** Unregister the registered tags */
   unregister = (e) => {
     this.hide();
     e.preventDefault();
@@ -286,6 +306,7 @@ class AssetReg extends Component {
       })
         .then((response) => {
           if (response.status === 200) {
+            $("#delete-form").css("display", "none");
             $("#conf-success").text("Tag un-registered successfully.");
           } else {
             $("#conf-error").text("Unable to un-registered Tag.");
@@ -295,7 +316,7 @@ class AssetReg extends Component {
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again"
+              "User Session has timed out. Please Login again"
             );
           } else {
             $("#conf-error").text(
@@ -311,6 +332,7 @@ class AssetReg extends Component {
       })
         .then((response) => {
           if (response.status === 200) {
+            $("#delete-form").css("display", "none");
             $("#conf-success").text("Tag un-registered successfully.");
           } else {
             $("#conf-error").text("Unable to un-registered Tag.");
@@ -320,7 +342,7 @@ class AssetReg extends Component {
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again"
+              "User Session has timed out. Please Login again"
             );
           } else {
             $("#conf-error").text(
@@ -329,15 +351,16 @@ class AssetReg extends Component {
           }
         });
     } else if ($("#tagtype").val() === "Signal Repeater") {
-      console.log(id);
+      // console.log(id);
       axios({
         method: "DELETE",
         url: signalRepeator,
         data: { macaddress: id },
       })
         .then((response) => {
-          console.log(response);
+          // console.log(response);
           if (response.status === 200) {
+            $("#delete-form").css("display", "none");
             $("#conf-success").text(
               "Signal Repeater Asset deleted successfully."
             );
@@ -346,11 +369,11 @@ class AssetReg extends Component {
           }
         })
         .catch((error) => {
-          console.log(error);
+          // console.log(error);
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again."
+              "User Session has timed out. Please Login again."
             );
           } else {
             $("#conf-error").text(
@@ -363,11 +386,12 @@ class AssetReg extends Component {
     } else if ($("#tagtype").val() === "Employee") {
       axios({
         method: "DELETE",
-        url: employeeTag,
-        data: { macaddress: id },
+        url: employeeRegistration,
+        data: { tagid: id },
       })
         .then((response) => {
           if (response.status === 200) {
+            $("#delete-form").css("display", "none");
             $("#conf-success").text("Employee Tag deleted successfully.");
           } else {
             $("#conf-error").text("Unable to delete Tag.");
@@ -377,7 +401,7 @@ class AssetReg extends Component {
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again."
+              "User Session has timed out. Please Login again."
             );
           } else {
             $("#conf-error").text(
@@ -392,11 +416,113 @@ class AssetReg extends Component {
     $("input[type=email]").val("");
   };
 
-  /** Terminate the session on forbidden (403) error */
   sessionTimeout = () => {
     $("#config_displayModal").css("display", "none");
     sessionStorage.setItem("isLoggedIn", 0);
     this.props.handleLoginError();
+  };
+
+  excelToJson(reader) {
+    var fileData = reader.result;
+    var wb = XLSX.read(fileData, { type: "binary" });
+    var data = {};
+    var data1 = [];
+    wb.SheetNames.forEach(function (sheetName) {
+      var rowObj = XLSX.utils.sheet_to_row_object_array(wb.Sheets[sheetName]);
+      var rowString = JSON.stringify(rowObj);
+      data[sheetName] = rowString;
+      data1 = rowObj;
+    });
+
+    this.setState({ excelData: data1 });
+  }
+  loadFileXLSX(event) {
+    var input = event.target;
+    var reader = new FileReader();
+    reader.onload = this.excelToJson.bind(this, reader);
+    reader.readAsBinaryString(input.files[0]);
+  }
+
+  bulkRegister = (e) => {
+    e.preventDefault();
+    $("#conf-error").text("");
+    $("#conf-success").text("");
+    $("#bulk_file").val("");
+    console.log("bulkRegister=======>", this.state.excelData);
+    if (this.state.excelData === undefined || this.state.excelData === null) {
+      $("#conf-error").text("No File Found.");
+    } else if (this.state.excelData.length > 0) {
+      axios({
+        method: "POST",
+        url: "/api/employee/bulk/registration",
+        data: this.state.excelData,
+      })
+        .then((res) => {
+          console.log("RESPONSE======>", res);
+          if (res.status === 200 || res.status === 201) {
+            $("#bulk_file").val("");
+            $("#conf-success").text("Bulk Registered Successfully.");
+          } else if (res.status === 208) {
+            $("#conf-error").text(res.data.error);
+          } else {
+            $("#conf-error").text("Unable to Registered.");
+          }
+        })
+        .catch((error) => {
+          console.log("ERROR=====>", error);
+          if (error.response.status === 403) {
+            $("#config_displayModal").css("display", "block");
+            $("#content").text(
+              "User Session has timed out. Please Login again."
+            );
+          } else {
+            $("#conf-error").text(
+              "Request Failed with status code (" + error.response.status + ")"
+            );
+          }
+        });
+    }
+  };
+
+  bulkUpdate = (e) => {
+    e.preventDefault();
+    $("#conf-error").text("");
+    $("#conf-success").text("");
+    $("#bulk_file").val("");
+    console.log("bulkUpdate==========>", this.state.excelData);
+    if (this.state.excelData === undefined || this.state.excelData === null) {
+      $("#conf-error").text("No File Found.");
+    } else if (this.state.excelData.length > 0) {
+      axios({
+        method: "PATCH",
+        url: "/api/employee/bulk/registration",
+        data: this.state.excelData,
+      })
+        .then((res) => {
+          if (res.status === 200 || res.status === 201) {
+            console.log("RESPONSE======>", res);
+            $("#bulk_file").val("");
+            $("#conf-success").text("Bulk Update Successfully.");
+          } else if (res.status === 208) {
+            $("#conf-error").text(res.data.error);
+          } else {
+            $("#conf-error").text("Unable to Update.");
+          }
+        })
+        .catch((error) => {
+          console.log("ERROR=====>", error);
+          if (error.response.status === 403) {
+            $("#config_displayModal").css("display", "block");
+            $("#content").text(
+              "User Session has timed out. Please Login again."
+            );
+          } else {
+            $("#conf-error").text(
+              "Request Failed with status code (" + error.response.status + ")"
+            );
+          }
+        });
+    }
   };
 
   render() {
@@ -416,13 +542,14 @@ class AssetReg extends Component {
         />
         <br></br>
         <div>
-          {/* Element for displaying error messages */}
-          <span className="error-msg" id="conf-error"></span>
-          <span className="success-msg" id="conf-success"></span>
+          <strong>
+            <span className="error-msg" id="conf-error"></span>
+          </strong>
+          <strong>
+            <span className="success-msg" id="conf-success"></span>
+          </strong>
         </div>
-        {/* Form for Registering the sensor and tracking tags */}
         <form id="reg-form">
-          {/* Input field for Tag MAC ID */}
           <div className="input-group">
             <span className="label">Tag MAC ID :</span>
             <input
@@ -433,7 +560,6 @@ class AssetReg extends Component {
               placeholder="5a-c2-15-00-00-00"
             />
           </div>
-          {/* Select List for Tag Type  */}
           <div className="input-group">
             <span className="label">Tag Type :</span>
             <select
@@ -450,7 +576,6 @@ class AssetReg extends Component {
             </select>
           </div>
           <div id="temp_form" className="fading" style={{ display: "block" }}>
-            {/* Input field for Floor Name */}
             <div className="input-group">
               <span className="label">Floor Name : </span>
               <select name="type" id="fname"></select>
@@ -473,7 +598,6 @@ class AssetReg extends Component {
             </div>
           </div>
           <div id="iaq_form" className="fading" style={{ display: "none" }}>
-            {/* Input field for Floor Name */}
             <div className="input-group">
               <span className="label">Floor Name : </span>
               <select name="type" id="fname1"></select>
@@ -487,28 +611,100 @@ class AssetReg extends Component {
               <input type="number" id="yval" required="required" />
             </div>
           </div>
-          <div className="input-group">
+
+          <div id="emp_form" className="fading" style={{ display: "none" }}>
+            <div className="input-group">
+              <span className="label">Name : </span>
+              <input type="text" id="emp_name" required="required" />
+            </div>
+            <div className="input-group">
+              <span className="label">Role : </span>
+              <input type="text" id="emp_role" required="required" />
+            </div>
+            <div className="input-group">
+              <span className="label">Employee ID : </span>
+              <input type="text" id="emp_id" required="required" />
+            </div>
+            <div className="input-group">
+              <span className="label">Email : </span>
+              <input type="text" id="emp_email" required="required" />
+            </div>
+            <div className="input-group">
+              <span className="label">Phone.No : </span>
+              <input type="text" id="emp_phoneNo" required="required" />
+            </div>
+          </div>
+
+          {/* Button for searching tag */}
+          <div style={{ display: "flex", margin: "15px" }}>
             <input
               type="submit"
-              value="Register Tag"
               onClick={this.register}
+              value="Register Tag"
+              className="btn success-btn"
+            />
+            <input
+              style={{ marginLeft: "20px" }}
+              type="button"
+              onClick={() => {
+                this.show();
+                this.hide();
+              }}
+              value="Remove Tag"
+              className="btn success-btn"
+            />
+
+            <input
+              id="bluk_reg"
+              style={{ marginLeft: "20px", display: "none" }}
+              type="button"
+              onClick={() => {
+                $("#delete-form").css("display", "none");
+                $("#bluk_form").css(
+                  "display",
+                  $("#bluk_form").css("display") === "block" ? "none" : "block"
+                );
+                window.scrollTo(0, document.body.scrollHeight);
+              }}
+              value="Bulk Upload"
               className="btn success-btn"
             />
           </div>
         </form>
-        {/* Button for toggeling for Deleting Tag Form */}
-        <button
-          onClick={() => {
-            this.show();
-            this.hide();
-          }}
-          className="btn success-btn"
-        >
-          Remove Tag
-        </button>
-        {/* Form for deleting the registered tags */}
+
+        <form id="bluk_form" className="fading" style={{ display: "none" }}>
+          <div className="input-group">
+            <span className="label">Employee Bulk Upload :</span>
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              required="required"
+              onChange={this.loadFileXLSX.bind(this)}
+              name="bulk_file"
+              id="bulk_file"
+            />
+          </div>
+          <div style={{ display: "flex", margin: "15px" }}>
+            <div className="input-group">
+              <input
+                type="submit"
+                value="Bulk Register"
+                onClick={this.bulkRegister}
+                className="btn success-btn"
+              />
+
+              <input
+                style={{ marginLeft: "20px" }}
+                type="submit"
+                value="Bulk Update"
+                onClick={this.bulkUpdate}
+                className="btn update-btn"
+              />
+            </div>
+          </div>
+        </form>
+
         <form id="delete-form" className="fading" style={{ display: "none" }}>
-          {/* Select List for Tag Type  */}
           <div className="input-group">
             <span className="label">Tag Type :</span>
             <select
@@ -524,6 +720,7 @@ class AssetReg extends Component {
               <option>Employee</option>
             </select>
           </div>
+
           {/* Input Field for Tag MAC ID */}
           <div className="input-group">
             <span className="label">Tag MAC ID :</span>
@@ -537,16 +734,16 @@ class AssetReg extends Component {
             />
           </div>
 
-          <div className="input-group">
+          <div className="input-group" style={{ margin: "15px" }}>
             <input
               type="submit"
               value="Delete Tag"
               onClick={this.unregister}
-              className="btn success-btn"
+              className="btn warning-btn"
             />
           </div>
         </form>
-        {/* Display modal to display error messages */}
+
         <div id="config_displayModal" className="modal">
           <div className="modal-content">
             <p id="content" style={{ textAlign: "center" }}></p>

@@ -33,9 +33,6 @@ class Login extends Component {
   /** Method to login */
   login = (e) => {
     e.preventDefault();
-    // axios.defaults.xsrfHeaderName = "x-csrftoken";
-    // axios.defaults.xsrfCookieName = "csrftoken";
-    // axios.defaults.withCredentials = true;
     axios({
       method: "POST",
       url: loginAPI,
@@ -54,7 +51,7 @@ class Login extends Component {
 
   /** Redern the html content on the browser */
   render() {
-    const { username, password } = this.state; // Destructuring state
+    const { username, password } = this.state;
     return (
       <Fragment>
         <Helmet>

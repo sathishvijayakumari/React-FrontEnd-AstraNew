@@ -79,12 +79,13 @@ class SlaveGateway extends Component {
         .then((response) => {
           if (response.status === 200 || response.status === 201) {
             $("#slave-success").text("Slave Gateway registered successfully.");
+            $("#slaveid").val("");
           } else {
             $("#slave-error").text("Unable to registered Slave Gateway.");
           }
         })
         .catch((error) => {
-          console.log(error);
+          // console.log(error);
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
@@ -119,6 +120,8 @@ class SlaveGateway extends Component {
             $("#slave-success").text(
               "Slave Gateway un-registered successfully."
             );
+            $("#slaveid-del").val("");
+            this.show();
           } else {
             $("#slave-error").text("Unable to un-registered Slave Gateway.");
           }

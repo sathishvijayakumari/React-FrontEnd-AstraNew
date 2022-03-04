@@ -59,7 +59,7 @@ class EmployeeRegistration extends Component {
           data: data,
         })
           .then((response) => {
-            console.log(response);
+            // console.log(response);
             if (response.status === 201) {
               $("#conf-success").text("Employee is registered successfully.");
             } else {
@@ -67,11 +67,11 @@ class EmployeeRegistration extends Component {
             }
           })
           .catch((error) => {
-            console.log(error);
+            // console.log(error);
             if (error.response.status === 403) {
               $("#config_displayModal").css("display", "block");
               $("#content").text(
-                "User Session has timed out.<br> Please Login again."
+                "User Session has timed out. Please Login again."
               );
             } else {
               $("#conf-error").text(
@@ -117,7 +117,7 @@ class EmployeeRegistration extends Component {
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again"
+              "User Session has timed out. Please Login again"
             );
           } else {
             $("#conf-error").text(

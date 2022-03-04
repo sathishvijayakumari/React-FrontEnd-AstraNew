@@ -19,6 +19,18 @@ const Underline = {
   position: "absolute",
   zIndex: "-1",
 };
+const graphBtn = {
+  padding: "8px 10px",
+  border: "none",
+  marginLeft: "15px",
+  borderRadius: "4px",
+  fontSize: "16px",
+  cursor: "pointer",
+  color: "Black",
+  fontWeight: "bold",
+  boxShadow: "3px 3px 5px 3px rgba(0, 0, 0, 0.25)",
+};
+
 
 class AirQuality extends Component {
   // local variable
@@ -33,7 +45,7 @@ class AirQuality extends Component {
 
   /** Method is called on Component Load */
   componentDidMount() {
-    linkClicked(5);
+    linkClicked(3);
     // api call on componet load to get all floor maps registered
     axios({
       method: "GET",
@@ -63,12 +75,10 @@ class AirQuality extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.log("floorBlock error======>",error);
         if (error.response.status === 403) {
           $("#thermalDisplayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -77,81 +87,86 @@ class AirQuality extends Component {
       });
   }
 
-  /** Method to display floor map image on selecting floor name */
-  plotFloorMap = () => {
-    $("#graphBlock").css("display", "none");
-    $("#temp").children("i").remove();
-    $("#temp").children("p").remove();
-    let floorID = $("#fname").val(); // Getting the id of floor map from select list to get particular floor data
-    this.fimage = this.floorData[floorID]; // Getting the floor map details(name, height, width, path) for selected id
-    this.fWidth = this.fimage.width; // Width of the floor
-    this.fHeight = this.fimage.height; // Height of the floor
-    $("#tempimg").attr(
-      "src",
-      this.fimage.image.substring(8, this.fimage.image.length)
-    );
-    // Setting the pixel for 1m based on floor map width
-    // Setting maximum width for floor map based on floor map width
-    if (this.fWidth > 0 && this.fWidth <= 20) {
-      this.xpixel = 50;
-      this.maxWidth = this.fimage.width * 100;
-    } else if (this.fWidth > 20 && this.fWidth <= 40) {
-      this.xpixel = 30;
-      this.maxWidth = this.fimage.width * 60;
-    } else if (this.fWidth > 40 && this.fWidth <= 80) {
-      this.xpixel = 20;
-      this.maxWidth = this.fimage.width * 40;
-    } else if (this.fWidth > 80 && this.fWidth <= 120) {
-      this.xpixel = 10;
-      this.maxWidth = this.fimage.width * 20;
-    } else {
-      this.xpixel = 8;
-      this.maxWidth = this.fimage.width * 10;
-    }
-    let w = $("#tempimg").css("width"); // Fetching actual width of image in pixels
-    let h = $("#tempimg").css("height"); // Fetching actual height of image in pixels
-    this.c = parseFloat(w) / parseFloat(h); // Calculating ratio of floor map
-    this.maxHeight = this.maxWidth / this.c;
-    // Calculating default width and height for floor map image to display on page
-    this.minImgWidth = this.fWidth * this.xpixel;
-    this.minImgHeight = this.minImgWidth / this.c;
-    // Setting width and height property of floor map image
-    $("#temp").css("width", this.minImgWidth);
-    $("#temp").css("height", this.minImgHeight);
-    // Setting maximum and minimum width and height for floor map image for zoom effect
-    $("#temp").css("min-width", this.minImgWidth);
-    $("#temp").css("min-height", this.minImgHeight);
-    // Setting maximum and minimum width and height for floor map image for zoom effect
-    $("#temp").css("max-width", this.maxWidth);
-    $("#temp").css("max-height", this.maxHeight);
-    $("#tempimg").attr("style", "width:100%; height:100%;");
+  componentWillUnmount = () => {
+    clearInterval(this.sensor_interval);
+  };
 
+  optionChange = (btnId) => {
+    $("#opt0").css({ background: "none", color: "#000" });
+    $("#opt1").css({ background: "none", color: "#000" });
+    $("#opt2").css({ background: "none", color: "#000" });
+    console.log("----->", btnId);
+    $("#" + btnId).css({ background: "rgb(0, 98, 135)", color: "#FFF" });
+  };
+
+
+  plotFloorMap = () => {
+    let floorID = $("#fname").val();
+    this.fimage = this.floorData[floorID];
+    this.fWidth = this.fimage.width;
+    this.fHeight = this.fimage.height;
+    $("#tempimg").attr("src", this.fimage.image);
+    $("#tempimg").attr("style", "width:auto;height:auto;");
     $("#lastupdated").css("display", "none");
     $("#temp").children("div").remove();
+    $("#tempChart").remove();
+    $("#temp .circle").remove();
+    $("#graphBlock").css("display", "none");
     $("input[type=text]").val("");
-    window.scrollTo(0, document.body.scrollHeight);
-    // Calling method to plot tags on map
-    this.plotSensors();
-    // timer function for refreshing each 5 seconds
-    // clearInterval(this.thermal_interval);
-    // this.thermal_interval = setInterval(this.plotSensors, 15 * 1000);
+    this.timeout = setTimeout(() => {
+      $("#temp .circle").remove();
+      this.floorDisplay();
+      this.plotSensors();
+    }, 2 * 1000);
+    clearInterval(this.sensor_interval);
+    this.sensor_interval = setInterval(this.plotSensors, 15 * 1000);
+  };
+
+  floorDisplay = () => {
+    console.log("floorDisplay=======");
+    this.wp = document.getElementById("temp").clientWidth;
+    this.hp = document.getElementById("temp").clientHeight;
+    $("#tempimg").attr(
+      "style",
+      "width:" + this.wp + "px;height:" + this.hp + "px;"
+    );
   };
 
   plotSensors = () => {
     let fname = $("#fname").val();
+    console.log(this.wp, "==========", this.hp);
     $("#total").text("0");
+    $("#temp-error").text("");
+    $("#temp .circle").remove();
     axios({
       method: "GET",
       url: irqSensor + "?floorid=" + this.floorData[fname].id,
     })
       .then((response) => {
+        console.log("PlotSensors====>", response);
+        let wpx = this.wp / this.fWidth;
+        let hpx = this.hp / this.fHeight;
         if (response.status === 200) {
-          if (response.data.length !== 0) {
-            let data = response.data;
-            let wpx = document.getElementById("temp").clientWidth / this.fWidth;
-            let hpx =
-              document.getElementById("temp").clientHeight / this.fHeight;
+          $("#temp .circle").remove();
+          let data = response.data;
+          if (data.length !== 0) {
+            $("#lastupdated").css("display", "block");
+            let ind = 0;
+            let totaltags = 0;
             for (let i in data) {
+              let bgColor = "#581845";
+              totaltags = totaltags + 1;
+              if (data[i].tvoc >= 0 && data[i].tvoc <= 50) bgColor = "green";
+              else if (data[i].tvoc >= 51 && data[i].tvoc <= 100)
+                bgColor = "#1dfa02";
+              else if (data[i].tvoc >= 101 && data[i].tvoc <= 150)
+                bgColor = "yellow";
+              else if (data[i].tvoc >= 151 && data[i].tvoc <= 200)
+                bgColor = "orange";
+              else if (data[i].tvoc >= 201 && data[i].tvoc <= 250)
+                bgColor = "red";
+              else if (data[i].tvoc >= 251 && data[i].tvoc <= 350)
+                bgColor = "#900c3f";
               var iaq = document.createElement("i");
               $(iaq).attr("class", "circle");
               $(iaq).attr("id", data[i].macid);
@@ -160,37 +175,32 @@ class AirQuality extends Component {
               });
               $(iaq).attr(
                 "style",
-                "cursor:pointer; padding:5px; position:absolute;  left:" +
-                  data[i].x * wpx +
-                  "px; top:" +
-                  data[i].y * hpx +
-                  "px;"
+                "background:" +
+                bgColor +
+                ";cursor:pointer; padding:5px; position:absolute;  left:" +
+                data[i].x * wpx +
+                "px; top:" +
+                data[i].y * hpx +
+                "px;"
               );
-
-              var p = document.createElement("p");
-              $(p).text(data[i].macid);
-              $(p).attr(
-                "style",
-                "font-size:11px; font-weight:bold; padding:2px; border:1px solid black; border-radius:5px; position:absolute; color:black; background:white; left:" +
-                  data[i].x * wpx +
-                  "px; top:" +
-                  data[i].y * hpx +
-                  "px;"
-              );
-
+              $(iaq).attr("title", data[i].macid);
               $("#temp").append(iaq);
-              $("#temp").append(p);
             }
+            $("#total").text(totaltags);
+            $("#timing").text(data[ind].lastseen.substring(0, 19).replace("T", " "));
+          } else {
+            $("#temp-error").text(
+              "No Asset is turned on, Please check System Health Page."
+            );
           }
+        } else {
+          $("#temp-error").text("Unable to get Tags Data.");
         }
       })
       .catch((error) => {
-        console.log(error);
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -200,11 +210,16 @@ class AirQuality extends Component {
   };
 
   getGraphData = (id) => {
+    $("#temp-error").text("");
+    this.optionChange("opt0");
+    $("#tempChart").remove();
+    $("#graphBlock").css("display", "none");
     axios({
       method: "GET",
       url: dailyIAQData + "?macaddress=" + id,
     })
       .then((response) => {
+        console.log("DATA====>" , response);
         if (response.status === 200) {
           if (response.data.length !== 0) {
             $("#graphBlock").css("display", "block");
@@ -243,7 +258,7 @@ class AirQuality extends Component {
                     lineTension: 0.4,
                   },
                   {
-                    label: "TVOC",
+                    label: "IAQ Index",
                     data: tvoc,
                     backgroundColor: "green",
                     borderColor: "green",
@@ -275,12 +290,12 @@ class AirQuality extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
         if (error.response.status === 403) {
           $("#thermalDisplayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#temp-error").text("No data found.");
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -289,7 +304,12 @@ class AirQuality extends Component {
       });
   };
 
-  dailyReport = () => {
+  dailyReport = (btnId) => {
+    $("#temp-error").text("");
+    this.optionChange(btnId);
+    $("#tempChart").remove();
+    $("#graph_opt").children("div").css("text-decoration", "none");
+    $("#graph_opt").children("div").eq(0).css("text-decoration", "underline");
     axios({
       method: "GET",
       url: dailyIAQData + "?macaddress=" + $("#chartID").text(),
@@ -331,7 +351,7 @@ class AirQuality extends Component {
                     lineTension: 0.4,
                   },
                   {
-                    label: "TVOC",
+                    label: "IAQ Index",
                     data: tvoc,
                     backgroundColor: "green",
                     borderColor: "green",
@@ -363,12 +383,13 @@ class AirQuality extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        if ($("#chartCanvas").children().length !== 0) $("#tempChart").remove();
+        // console.log(error);
         if (error.response.status === 403) {
           $("#thermalDisplayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#temp-error").text("No data found.");
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -377,7 +398,12 @@ class AirQuality extends Component {
       });
   };
 
-  weeklyReport = () => {
+  weeklyReport = (btnId) => {
+    $("#temp-error").text("");
+    this.optionChange(btnId);
+    $("#tempChart").remove();
+    $("#graph_opt").children("div").css("text-decoration", "none");
+    $("#graph_opt").children("div").eq(1).css("text-decoration", "underline");
     axios({
       method: "GET",
       url: weeklyIAQData + "?macaddress=" + $("#chartID").text(),
@@ -394,8 +420,8 @@ class AirQuality extends Component {
               tvoc.push(data[i].tvoc);
               timing.push(
                 data[i].timestamp.substr(8, 2) +
-                  " " +
-                  data[i].timestamp.substr(11, 5)
+                " " +
+                data[i].timestamp.substr(11, 5)
               );
             }
             if ($("#chartCanvas").children().length !== 0)
@@ -423,7 +449,7 @@ class AirQuality extends Component {
                     lineTension: 0.4,
                   },
                   {
-                    label: "TVOC",
+                    label: "IAQ Index",
                     data: tvoc,
                     backgroundColor: "green",
                     borderColor: "green",
@@ -455,12 +481,13 @@ class AirQuality extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        if ($("#chartCanvas").children().length !== 0) $("#tempChart").remove();
+        // console.log(error);
         if (error.response.status === 403) {
           $("#thermalDisplayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#temp-error").text("No data found.");
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -469,7 +496,12 @@ class AirQuality extends Component {
       });
   };
 
-  monthlyReport = () => {
+  monthlyReport = (btnId) => {
+    $("#temp-error").text("");
+    $("#tempChart").remove();
+    this.optionChange(btnId);
+    $("#graph_opt").children("div").css("text-decoration", "none");
+    $("#graph_opt").children("div").eq(2).css("text-decoration", "underline");
     axios({
       method: "GET",
       url: monthlyIAQData + "?macaddress=" + $("#chartID").text(),
@@ -511,7 +543,7 @@ class AirQuality extends Component {
                     lineTension: 0.4,
                   },
                   {
-                    label: "TVOC",
+                    label: "IAQ Index",
                     data: tvoc,
                     backgroundColor: "green",
                     borderColor: "green",
@@ -543,18 +575,26 @@ class AirQuality extends Component {
         }
       })
       .catch((error) => {
-        console.log(error);
+        // console.log(error);
+        if ($("#chartCanvas").children().length !== 0) $("#tempChart").remove();
         if (error.response.status === 403) {
           $("#thermalDisplayModal").css("display", "block");
-          $("#content").text(
-            "User Session has timed out.<br> Please Login again"
-          );
+          $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#temp-error").text("No data found.");
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
           );
         }
       });
+  };
+
+  /** Terminate the session on forbidden (403) error */
+  sessionTimeout = () => {
+    $("#report-displayModal").css("display", "none");
+    sessionStorage.setItem("isLoggedIn", 0);
+    this.props.handleLogin(0);
   };
 
   render() {
@@ -565,13 +605,6 @@ class AirQuality extends Component {
         </Helmet>
         <div className="panel">
           <span className="main-heading">AIR QUALITY PARAMETERS</span>
-          <span
-            style={{ float: "right", fontSize: "18px", display: "none" }}
-            className="sub-heading"
-            id="lastupdated"
-          >
-            Last Updated : <span id="timing">00:00:00</span>{" "}
-          </span>
           <br />
           <img alt="" src="../images/Tiles/Underline.png" style={Underline} />
           <div className="container fading" style={{ marginTop: "50px" }}>
@@ -586,6 +619,13 @@ class AirQuality extends Component {
                     this.plotFloorMap();
                   }}
                 ></select>
+                <span
+                  style={{ float: "right", fontSize: "18px", display: "none", marginTop:"20px" }}
+                  className="sub-heading"
+                  id="lastupdated"
+                >
+                  Last Updated : <span id="timing">00:00:00</span>
+                </span>
               </div>
             </div>
             {/* Element for displaying error message */}
@@ -602,55 +642,98 @@ class AirQuality extends Component {
                   </u>
                 </div>
                 <br></br>
-                {/* <div className="row sub-heading">
-                  <div
-                    className="square"
-                    style={{
-                      backgroundColor: "blue",
-                      display: "inline-block",
-                      marginRight: "10px",
-                    }}
-                  ></div>
-                  Cold
-                  <div style={{ display: "inline" }}> ( &lt;25&deg;C )</div>
+                <div className="row sub-heading" style={{ fontSize: "1.2vw" }}>
                   <div
                     className="square"
                     style={{
                       backgroundColor: "green",
                       display: "inline-block",
                       marginRight: "10px",
+                    }}
+                  ></div>
+                  Excellent
+                  <div style={{ display: "inline" }}> ( 0-50 )</div>
+                  <div
+                    className="square"
+                    style={{
+                      backgroundColor: "#1DFA02",
+                      display: "inline-block",
+                      marginRight: "10px",
                       marginLeft: "20px",
                     }}
                   ></div>
-                  Optimum
-                  <div style={{ display: "inline" }}>
-                    {" "}
-                    ( 25&deg;C - 30&deg;C )
-                  </div>
+                  Good
+                  <div style={{ display: "inline" }}>( 51-100 )</div>
+                  <div
+                    className="square"
+                    style={{
+                      backgroundColor: "yellow",
+                      display: "inline-block",
+                      marginRight: "10px",
+                      marginLeft: "20px",
+                    }}
+                  ></div>
+                  Lightly Polluted
+                  <div style={{ display: "inline" }}> ( 101-150 )</div>
+                </div>
+
+                <div className="row sub-heading" style={{ fontSize: "1.2vw" }}>
                   <div
                     className="square"
                     style={{
                       backgroundColor: "orange",
                       display: "inline-block",
                       marginRight: "10px",
+                    }}
+                  ></div>
+                  Moderately Polluted
+                  <div style={{ display: "inline" }}> ( 151-200 )</div>
+                  <div
+                    className="square"
+                    style={{
+                      backgroundColor: "red",
+                      display: "inline-block",
+                      marginRight: "10px",
                       marginLeft: "20px",
                     }}
                   ></div>
-                  Warm
-                  <div style={{ display: "inline" }}> ( &gt;30&deg;C )</div>
-                </div> */}
-              </div>
-              <div className="row">
-                {/* Block to display floor map image */}
-                <div
-                  id="temp"
-                  style={{
-                    display: "block",
-                    position: "relative",
-                  }}
-                >
-                  <img id="tempimg" alt=""></img>
+                  Heavily Polluted
+                  <div style={{ display: "inline" }}>( 201-250 )</div>
+                  <div
+                    className="square"
+                    style={{
+                      backgroundColor: "#900C3F ",
+                      display: "inline-block",
+                      marginRight: "10px",
+                      marginLeft: "20px",
+                    }}
+                  ></div>
+                  Severely Polluted
+                  <div style={{ display: "inline" }}> ( 251-350 )</div>
                 </div>
+
+                <div className="row sub-heading" style={{ fontSize: "1.2vw" }}>
+                  <div
+                    className="square"
+                    style={{
+                      backgroundColor: "#581845",
+                      display: "inline-block",
+                      marginRight: "10px",
+                    }}
+                  ></div>
+                  Extremely Polluted
+                  <div style={{ display: "inline" }}> ( &gt; 350 )</div>
+                </div>
+              </div>
+              <div
+                id="temp"
+                style={{
+                  display: "block",
+                  position: "relative",
+                  width: "fit-content",
+                }}
+              >
+                <img id="tempimg" alt=""></img>
               </div>
               {/* Block for displaying graph */}
               <br></br>
@@ -660,33 +743,31 @@ class AirQuality extends Component {
                   IAQ Sensor ID : <span id="chartID"></span>
                 </div>
                 <br></br>
-                <div className="sub-heading" style={{ color: "lightgray" }}>
-                  <div
-                    style={{
-                      display: "inline-block",
-                      marginRight: "20px",
-                      cursor: "pointer",
-                    }}
-                    onClick={this.dailyReport}
+                <div id="graph_opt" style={{ display: "flex" }}>
+                  <button
+                    id="opt0"
+                    className="heading"
+                    style={graphBtn}
+                    onClick={() => this.dailyReport("opt0")}
                   >
-                    Daily Report
-                  </div>
-                  <div
-                    style={{
-                      display: "inline-block",
-                      marginRight: "20px",
-                      cursor: "pointer",
-                    }}
-                    onClick={this.weeklyReport}
+                    Daily Count
+                  </button>
+                  <button
+                    id="opt1"
+                    className="heading"
+                    style={graphBtn}
+                    onClick={() => this.weeklyReport("opt1")}
                   >
-                    Weekly Report
-                  </div>
-                  <div
-                    style={{ display: "inline-block", cursor: "pointer" }}
-                    onClick={this.monthlyReport}
+                    Weekly Count
+                  </button>
+                  <button
+                    id="opt2"
+                    className="heading"
+                    style={graphBtn}
+                    onClick={() => this.monthlyReport("opt2")}
                   >
-                    Monthly Report
-                  </div>
+                    Monthly Count
+                  </button>
                 </div>
                 <br></br>
                 <div id="chartCanvas"></div>

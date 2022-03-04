@@ -39,7 +39,7 @@ class DistanceTracking extends Component {
         url: employeeDistance + "?empid=" + empid,
       })
         .then((response) => {
-          console.log(response);
+          // console.log(response);
           if (response.status === 200) {
             $("#distanceblock").css("display", "block");
             // $("#conf-success").text("Tag is allocated.");
@@ -74,7 +74,7 @@ class DistanceTracking extends Component {
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
-              "User Session has timed out.<br> Please Login again."
+              "User Session has timed out. Please Login again."
             );
           } else {
             $("#conf-error").text(
@@ -127,7 +127,7 @@ class DistanceTracking extends Component {
           <br></br>
           <div id="distanceblock" style={{ display: "none" }}>
             <span className="heading">
-              Distace Tracking Data for Employee : <span id="empname"></span>
+              Distance Tracking Data for Employee : <span id="empname"></span>
             </span>
             <br />
             <img

@@ -114,8 +114,13 @@ div {
 }
 /* Property for button indicating warning */
 .warning-btn {
-  background-color: #fc3b3b;
+  background-color: #eb6565;
 }
+
+.update-btn{
+  background-color: #cf8b0f;
+}
+
 /* Apply shadow for the button on mouse over */
 .btn:hover {
   box-shadow: 1px 1px 4px 1px grey;
@@ -384,4 +389,112 @@ select::placeholder {
   #facilityH {
     width: 250px;
   }
+}
+
+
+
+/* Sensors Details Styles */
+
+/* Float four columns side by side */
+.column {
+  float: left;
+  width: 19%;
+  height: 100px;
+  margin: 5px;
+  cursor: pointer;
+  border-radius: 5px;
+  box-shadow: 0px 0px 4px 2px rgb(8 8 8 / 51%);
+}
+
+
+/* Responsive columns */
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px;
+  }
+}
+
+/* Style the counter cards */
+.card {
+   text-align: center;
+}
+
+.card h2{
+  margin-bottom: 5px;
+  color: gray;
+}
+
+.card p{
+  font-size: 17px;
+  margin-top: 5px;
+  margin-bottom: 0px;
+}
+
+.cardHeading{
+  font-size: 25px;
+  color: gray;
+  font-weight: bold;
+  margin-bottom: 10px;
+  border-bottom: 1px solid gray;
+}
+
+
+
+.sensor_pdf_button {
+  min-width: 150px;
+  min-height: 45px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+  background: #4FD1C5;
+  background: linear-gradient(90deg, rgb(134 188 242) 0%, rgb(79 102 209 / 82%) 100%);
+  border: none;
+  border-radius: 1000px;
+  /* box-shadow: 2px 2px 24px rgba(79,209,197,.64); */
+  transition: all 0.3s ease-in-out 0s;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  padding: 10px;
+  }
+
+
+.sensor_pdf_button:hover, .sensor_pdf_button:focus {
+  color: #FFF;
+  transform: translateY(-6px);
+}
+
+.spinner{
+  width: 25%;
+  padding: 2%;
+  margin: -26vh;
+  margin-left: 75px;
+  border-radius: 5px;
+  border: 1px solid gray;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+  transform: translate(100%, -317%);
+  background-color: #d2cbcbe8;
+}
+
+.loader {
+  border: 8px solid #f3f3f3;
+  border-radius: 40px;
+  border-top: 8px solid #ff0000b8;
+  width: 40px;
+  height: 40px;
+  -webkit-animation: spin 1s linear infinite; /* Safari */
+  animation: spin 1s linear infinite;
+}
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
