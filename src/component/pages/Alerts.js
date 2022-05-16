@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import { linkClicked } from "../navbar/Navbar";
 import axios from "axios";
 import $ from "jquery";
@@ -41,10 +40,8 @@ class Alerts extends Component {
     document.getElementById("alert-error").innerHTML = "";
     $("#alertsDetails1").empty();
     let alertTypeId = $("#type").val();
-    console.log('======>', alertTypeId);
     axios({ method: "POST", url: "/api/alerts", data: { value: alertTypeId } })
       .then((response) => {
-        console.log('response======>', response);
         if (response.status === 200 || response.status === 201) {
           if (response.data.length !== 0) {
             let data = response.data;
@@ -80,9 +77,7 @@ class Alerts extends Component {
           $("#alert_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
         }  else if(error.response.status === 404) {
-          $("#alert-error").text(
-            "No Data Found."
-          );
+          $("#alert-error").text("Alerts data not found.");
         }else {
           $("#alert-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -102,9 +97,9 @@ class Alerts extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Alerts</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">ALERTS</span>
           <br />

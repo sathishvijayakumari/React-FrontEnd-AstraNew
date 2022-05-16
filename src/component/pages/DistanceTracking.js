@@ -95,9 +95,9 @@ class DistanceTracking extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Distance Tracking</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">Contact Tracing</span>
           <br />

@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import $ from "jquery";
 import "../Styling.css";
@@ -23,21 +22,13 @@ export default class SensorDetails extends Component {
    }
 
    componentDidMount() {
-      localStorage.removeItem("sensor_macid");
-      // API call to get the all sensors details
       this.sensorsDetails();
-      // this.interval1 = setInterval(this.sensorsDetails, 15 * 1000);
    }
-
-   // componentWillUnmount() {
-   //    clearInterval(this.interval1);
-   // }
 
    sensorsDetails = () => {
       $("#sensor_error").text("");
       this.setState({ sensorDet: [] });
-      console.log('sensorsDetails Page======>', sensors_details_macIds);
-      axios({ method: "GET", url: sensors_details_macIds})
+      axios({ method: "GET", url: sensors_details_macIds })
          .then((response) => {
             if (response.status === 200 || response.status === 201) {
                var dt = response.data;
@@ -68,12 +59,10 @@ export default class SensorDetails extends Component {
             console.log('error=====>', error);
             if (error.response.status === 403) {
                $("#sensor-displayModal").css("display", "block");
-               $("#content").text(
-                  "User Session has timed out."
-               );
-               $("#content1").text(
-                  "Please Login again."
-               );
+               $("#content").text("User Session has timed out.");
+               $("#content1").text("Please Login again.");
+            } else if (error.response.status === 404) {
+               $("#sensor_error").text("No Sensor Data found.");
             } else {
                $("#sensor_error").text(
                   "Request Failed with status code (" + error.response.status + ")."
@@ -89,20 +78,14 @@ export default class SensorDetails extends Component {
       this.props.handleLogin(0);
    };
 
-   storeMacId = (macId) => {
-      console.log('###################', macId);
-      localStorage.setItem("sensor_macid", JSON.stringify({ macId: macId }));
-   }
-
-
    /** Redern the html content on the browser */
    render() {
       const { sensorDet } = this.state;
       return (
          <Fragment>
-            <Helmet>
+            <>
                <title>Sensor Details</title>
-            </Helmet>
+            </>
             <div className="panel">
                <span className="main-heading">Sensor Details</span><br />
                <img alt="" src="../images/Tiles/Underline.png" style={Underline} />
@@ -144,9 +127,10 @@ export default class SensorDetails extends Component {
                                     )}
                                     </td>
                                     <td>
-                                       <Link to="/sensordetailscards"
-                                          onClick={() => this.storeMacId(item.macid)}>
-
+                                       <Link to={{
+                                          pathname: '/sensordetailscards',
+                                          state: { macId: item.macid }
+                                       }}>
                                           <img src="../images/Icons/sensor_info.png"
                                              alt=""
                                              style={{ width: '25px' }} />

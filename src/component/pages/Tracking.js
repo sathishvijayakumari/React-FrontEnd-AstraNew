@@ -1,6 +1,5 @@
 /* eslint-disable no-useless-concat */
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import { linkClicked } from "../navbar/Navbar";
 import axios from "axios";
 import $ from "jquery";
@@ -73,6 +72,8 @@ class Tracking extends Component {
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#floor-error").text("No data found.");
         } else {
           $("#floor-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -84,10 +85,11 @@ class Tracking extends Component {
   componentWillUnmount() {
     clearInterval(this.interval);
     clearTimeout(this.timeout);
-    clearTimeout(this.intVal);
+    clearTimeout(this.pilot_asset_inter);
   }
 
   plotFloorMap = () => {
+    $("#track-error").text("");
     let floorID = $("#fname").val();
     this.fimage = this.floorData[floorID];
     this.fWidth = this.fimage.width;
@@ -107,7 +109,7 @@ class Tracking extends Component {
       this.panicData();
     }, 2 * 1000);
     clearInterval(this.interval);
-    this.interval = setInterval(this.panicData, 15 * 1000);
+    this.interval = setInterval(this.panicData, 5 * 1000);
   };
 
   getZones = () => {
@@ -171,6 +173,8 @@ class Tracking extends Component {
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#track-error").text("No zones data found.");
         } else {
           $("#track-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -182,6 +186,7 @@ class Tracking extends Component {
   panicData = () => {
     let alert_data = [];
     let fname = $("#fname").val();
+    // $("#temp #empls").remove();
     axios({
       method: "GET",
       url: "/api/alert/panic?floor=" + this.floorData[fname].id,
@@ -200,7 +205,7 @@ class Tracking extends Component {
       .catch((error) => {
         console.log("plotAssets--error====>", error);
       });
-    this.intVal = setTimeout(() => this.plotAssets(alert_data), 2 * 1000);
+    this.pilot_asset_inter = setTimeout(() => this.plotAssets(alert_data), 2 * 1000);
   };
 
   plotAssets = (alert_data) => {
@@ -223,14 +228,13 @@ class Tracking extends Component {
             let hpx = document.getElementById("temp").clientHeight / this.fHeight;
             $("#lastupdated").css("display", "block");
             let totaltags = 0;
+            let update_time =  data[0].lastseen.substring(0, 19).replace("T", " ");
             for (let i = 0; i < data.length; i++) {
               let timestamp =
                 new Date() -
                 new Date(data[i].lastseen.substring(0, 19).replace("T", " "));
-              let update_time = "";
               if (timestamp <= 2 * 60 * 1000) {
                 let color = "blue";
-                update_time = data[i].lastseen.substring(0, 19).replace("T", " ");
                 if (alert_data.length > 0) {
                   for (let j = 0; j < alert_data.length; j++) {
                     if (data[i].tagid === alert_data[j].asset.tagid) {
@@ -329,6 +333,8 @@ class Tracking extends Component {
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#track-error").text("No Asset data found.");
         } else {
           $("#track-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -412,6 +418,9 @@ class Tracking extends Component {
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#track-error").text("No daily data found.");
+          window.scrollTo(0, 0);
         } else {
           $("#track-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -510,7 +519,7 @@ class Tracking extends Component {
           $("#tracking_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
         } else if (error.response.status === 404) {
-          $("#track-error").text("No data found.");
+          $("#track-error").text("No daily data found.");
           window.scrollTo(0, 0);
         } else {
           $("#track-error").text(
@@ -607,7 +616,7 @@ class Tracking extends Component {
           $("#tracking_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
         } else if (error.response.status === 404) {
-          $("#track-error").text("No data found.");
+          $("#track-error").text("No weekly data found.");
           window.scrollTo(0, 0);
         } else {
           $("#track-error").text(
@@ -699,7 +708,7 @@ class Tracking extends Component {
           $("#tracking_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
         } else if (error.response.status === 404) {
-          $("#track-error").text("No data found.");
+          $("#track-error").text("No monthly data found.");
           window.scrollTo(0, 0);
         } else {
           $("#track-error").text(
@@ -718,7 +727,7 @@ class Tracking extends Component {
 
   search = () => {
     let id = $("#tagid").val();
-    console.log("searchhhhh====",id);
+    console.log("searchhhhh====", id);
     $("#track-error").text("");
     if (id.length === 0) {
       $("#track-error").text("Please enter Employee Tag ID.");
@@ -726,7 +735,7 @@ class Tracking extends Component {
       $("#track-error").text("Invalid Tag ID entered.");
     } else if (id.length !== 0) {
       this.flag = "true";
-      console.log("SEarch====",id);
+      console.log("SEarch====", id);
       // $("#temp").children("div").css("display", "none");
       $("#temp #empls").css("display", "none");
       $("#temp .emp_" + id).css("display", "block");
@@ -739,9 +748,9 @@ class Tracking extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Realtime Tracking</title>
-        </Helmet>
+        </>
         <div style={{ float: "right", width: "91%", marginTop: "90px" }}>
           <span className="main-heading">REALTIME TRACKING</span>
           <p className="underLine" />

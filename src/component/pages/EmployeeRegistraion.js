@@ -140,9 +140,9 @@ class EmployeeRegistration extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Employee Registration</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">Employee Registration</span>
           <br />

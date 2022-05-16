@@ -139,9 +139,9 @@ class TagAllocation extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Tag Allocation</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">Tag Allocation</span>
           <br />

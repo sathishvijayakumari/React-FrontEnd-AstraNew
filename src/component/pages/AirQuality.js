@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import {
   dailyIAQData,
   floorMap,
@@ -75,10 +74,12 @@ class AirQuality extends Component {
         }
       })
       .catch((error) => {
-        console.log("floorBlock error======>",error);
+        console.log("floorBlock error======>", error);
         if (error.response.status === 403) {
           $("#thermalDisplayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#temp-error").text("Please upload a floormap.");
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -89,6 +90,7 @@ class AirQuality extends Component {
 
   componentWillUnmount = () => {
     clearInterval(this.sensor_interval);
+    clearTimeout(this.timeout);
   };
 
   optionChange = (btnId) => {
@@ -101,6 +103,7 @@ class AirQuality extends Component {
 
 
   plotFloorMap = () => {
+    $("#temp-error").text("");
     let floorID = $("#fname").val();
     this.fimage = this.floorData[floorID];
     this.fWidth = this.fimage.width;
@@ -123,7 +126,6 @@ class AirQuality extends Component {
   };
 
   floorDisplay = () => {
-    console.log("floorDisplay=======");
     this.wp = document.getElementById("temp").clientWidth;
     this.hp = document.getElementById("temp").clientHeight;
     $("#tempimg").attr(
@@ -146,6 +148,7 @@ class AirQuality extends Component {
         console.log("PlotSensors====>", response);
         let wpx = this.wp / this.fWidth;
         let hpx = this.hp / this.fHeight;
+        console.log(wpx, "----------------", hpx);
         if (response.status === 200) {
           $("#temp .circle").remove();
           let data = response.data;
@@ -153,6 +156,7 @@ class AirQuality extends Component {
             $("#lastupdated").css("display", "block");
             let ind = 0;
             let totaltags = 0;
+            $("#timing").text(data[0].lastseen.substring(0, 19).replace("T", " "));
             for (let i in data) {
               let bgColor = "#581845";
               totaltags = totaltags + 1;
@@ -187,7 +191,6 @@ class AirQuality extends Component {
               $("#temp").append(iaq);
             }
             $("#total").text(totaltags);
-            $("#timing").text(data[ind].lastseen.substring(0, 19).replace("T", " "));
           } else {
             $("#temp-error").text(
               "No Asset is turned on, Please check System Health Page."
@@ -201,6 +204,10 @@ class AirQuality extends Component {
         if (error.response.status === 403) {
           $("#tracking_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
+        } else if (error.response.status === 404) {
+          $("#temp-error").text(
+            "No Asset is turned on, Please check System Health Page."
+          );
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -219,7 +226,7 @@ class AirQuality extends Component {
       url: dailyIAQData + "?macaddress=" + id,
     })
       .then((response) => {
-        console.log("DATA====>" , response);
+        console.log("DATA====>", response);
         if (response.status === 200) {
           if (response.data.length !== 0) {
             $("#graphBlock").css("display", "block");
@@ -295,7 +302,8 @@ class AirQuality extends Component {
           $("#thermalDisplayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
         } else if (error.response.status === 404) {
-          $("#temp-error").text("No data found.");
+          $("#temp-error").text("No Daily data found.");
+          window.scrollTo(0, 0);
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -389,7 +397,8 @@ class AirQuality extends Component {
           $("#thermalDisplayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
         } else if (error.response.status === 404) {
-          $("#temp-error").text("No data found.");
+          $("#temp-error").text("No Daily data found.");
+          window.scrollTo(0, 0);
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -487,7 +496,8 @@ class AirQuality extends Component {
           $("#thermalDisplayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
         } else if (error.response.status === 404) {
-          $("#temp-error").text("No data found.");
+          $("#temp-error").text("No Weekly data found.");
+          window.scrollTo(0, 0);
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -581,7 +591,8 @@ class AirQuality extends Component {
           $("#thermalDisplayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again");
         } else if (error.response.status === 404) {
-          $("#temp-error").text("No data found.");
+          $("#temp-error").text("No Monthly data found.");
+          window.scrollTo(0, 0);
         } else {
           $("#temp-error").text(
             "Request Failed with status code (" + error.response.status + ")."
@@ -600,9 +611,9 @@ class AirQuality extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Air Quality Parameters</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">AIR QUALITY PARAMETERS</span>
           <br />
@@ -620,7 +631,7 @@ class AirQuality extends Component {
                   }}
                 ></select>
                 <span
-                  style={{ float: "right", fontSize: "18px", display: "none", marginTop:"20px" }}
+                  style={{ float: "right", fontSize: "18px", display: "none", marginTop: "20px" }}
                   className="sub-heading"
                   id="lastupdated"
                 >

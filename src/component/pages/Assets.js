@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import $ from "jquery";
 import "./Styling.css";
@@ -236,9 +235,9 @@ class Assets extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Assets</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">ALL ASSETS</span>
           <br />

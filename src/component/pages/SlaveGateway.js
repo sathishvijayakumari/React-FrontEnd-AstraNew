@@ -85,7 +85,7 @@ class SlaveGateway extends Component {
           }
         })
         .catch((error) => {
-          // console.log(error);
+          console.log(error.response);
           if (error.response.status === 403) {
             $("#config_displayModal").css("display", "block");
             $("#content").text(
@@ -188,25 +188,25 @@ class SlaveGateway extends Component {
               onChange={this.hide}
             />
           </div>
-          <div className="input-group">
-            <input
-              type="submit"
-              value="Register Gateway"
-              onClick={this.registerSlave}
-              className="btn success-btn"
-            />
-          </div>
         </form>
-        {/* Button for toggeling for Deleting Gateway Form */}
-        <button
-          onClick={() => {
-            this.show();
-            this.hide();
-          }}
-          className="btn success-btn"
-        >
-          Remove Gateway
-        </button>
+        <div style={{ display: "flex", margin: "15px" }}>
+          <input
+            type="submit"
+            onClick={this.registerSlave}
+            value="Register Gateway"
+            className="btn success-btn"
+          />
+          <input
+            style={{ marginLeft: "20px" }}
+            type="button"
+            onClick={() => {
+              this.show();
+              this.hide();
+            }}
+            value="Remove Gateway"
+            className="btn success-btn"
+          />
+        </div>
         {/* Form for deleting the registered gateway tags */}
         <form
           id="slave-del-form"
@@ -225,7 +225,7 @@ class SlaveGateway extends Component {
               placeholder="5a-c2-15-00-00-00"
             />
           </div>
-          <div className="input-group">
+          <div className="input-group" style={{ margin: "15px" }}>
             <input
               type="submit"
               value="Delete Gateway"

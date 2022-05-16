@@ -1,5 +1,4 @@
 import React, { PureComponent, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import $ from "jquery";
 import "../Styling.css";
@@ -9,6 +8,7 @@ import { sensors_details_macId_details } from "../../../urls/apis";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import logo from './AstraZeneca_logo.png';
+import { Link } from "react-router-dom";
 
 const Underline = {
    width: "75px",
@@ -27,13 +27,11 @@ class SensorDetailsCards extends PureComponent {
    }
 
    componentDidMount() {
-      // API call to get the all asset details
-      const sensorData = localStorage.getItem("sensor_macid");
-      const sensor_det = JSON.parse(sensorData)
-      console.log(sensor_det.macId, 'Sensors Macid------->', sensor_det);
-      this.setState({ macId: sensor_det.macId })
-      this.sensorsDetails(sensor_det.macId);
-      this.interval1 = setInterval(() => this.sensorsDetails(sensor_det.macId), 15 * 1000);
+      const macid = this.props.location.state.macId
+      console.log('Sensors Macid------->', macid);
+      this.setState({ macId: macid })
+      this.sensorsDetails(macid);
+      this.interval1 = setInterval(() => this.sensorsDetails(macid), 15 * 1000);
    }
 
    componentWillUnmount() {
@@ -41,7 +39,6 @@ class SensorDetailsCards extends PureComponent {
    }
 
    sensorsDetails = (macId) => {
-      console.log('sensorsDetails Card Page%%%%%%%%====>', sensors_details_macId_details + '?macaddress=' + macId);
       axios({ method: "GET", url: sensors_details_macId_details + '?macaddress=' + macId })
          .then((response) => {
             if (response.status === 200 || response.status === 201) {
@@ -91,14 +88,8 @@ class SensorDetailsCards extends PureComponent {
       this.props.handleLogin(0);
    };
 
-   cardDatas = (id, key) => {
-      localStorage.setItem("sensor_macid", JSON.stringify({ macId: this.state.macId, column: key }))
-      window.location.pathname = "/sensordetailsgraph"
-      console.log('------->', id);
-   }
-
    downloadpdf = () => {
-      console.log('DOWNLOAD PDfffff----->', this.state.macId);
+      // console.log('DOWNLOAD PDfffff----->', this.state.macId);
       let macid = this.state.macId.toString()
       const doc = new jsPDF();
       doc.autoTable({
@@ -185,9 +176,9 @@ class SensorDetailsCards extends PureComponent {
       const { macId, lastseen } = this.state;
       return (
          <Fragment>
-            <Helmet>
+            <>
                <title>Sensor Details</title>
-            </Helmet>
+            </>
 
             <div className="panel">
                <span className="main-heading">Sensor Details</span><br />
@@ -211,97 +202,147 @@ class SensorDetailsCards extends PureComponent {
                   <p className="error-msg" id="report-error"></p>
                   <div className="container" style={{ paddingBottom: '20px' }}>
                      <div className="row">
-                        <div className="column" id="0" onClick={() => this.cardDatas("0", "Temp")}>
-                           <div className="card">
-                              <h2>Temperature (°C)</h2>
-                              <p style={{ marginLeft: '-40px' }}><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "Temp" }
+                        }}>
+                           <div className="column" id="0">
+                              <div className="card">
+                                 <h2>Temperature (°C)</h2>
+                                 <p style={{ marginLeft: '-40px' }}><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
 
-                        <div className="column" id="1" onClick={() => this.cardDatas("1", "Humi")}>
-                           <div className="card">
-                              <h2>Humidity (%RH)</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "Humi" }
+                        }}>
+                           <div className="column" id="1">
+                              <div className="card">
+                                 <h2>Humidity (%RH)</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
 
-                        <div className="column" id="2" onClick={() => this.cardDatas("2", "Co2")}>
-                           <div className="card">
-                              <h2>CO2 (ppm)</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "Co2" }
+                        }}>
+                           <div className="column" id="2">
+                              <div className="card">
+                                 <h2>CO2 (ppm)</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
                      </div>
 
                      <p className="cardHeading">
                         IAQ Index
                      </p>
+
                      <div className="row">
-                        <div className="column" id="3" onClick={() => this.cardDatas("3", "VOC")}>
-                           <div className="card">
-                              <h2>VOC</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "VOC" }
+                        }}>
+                           <div className="column" id="3">
+                              <div className="card">
+                                 <h2>VOC</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
-
+                        </Link>
                      </div>
-
 
                      <p className="cardHeading">
                         O2 Details
                      </p>
                      <div className="row">
-                        <div className="column" id="4" onClick={() => this.cardDatas("4", "O2")}>
-                           <div className="card">
-                              <h2>O2 (%)</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "O2" }
+                        }}>
+                           <div className="column" id="4">
+                              <div className="card">
+                                 <h2>O2 (%)</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
                      </div>
 
                      <p className="cardHeading">
                         Respiratory Particulate Matter(PM)
                      </p>
                      <div className="row">
-                        <div className="column" id="5" onClick={() => this.cardDatas("5", "PM1")}>
-                           <div className="card">
-                              <h2>PM1.0</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "PM1" }
+                        }}>
+                           <div className="column" id="5">
+                              <div className="card">
+                                 <h2>PM1.0</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
 
-                        <div className="column" id="6" onClick={() => this.cardDatas("6", "PM2")}>
-                           <div className="card">
-                              <h2>PM2.5</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "PM2" }
+                        }}>
+                           <div className="column" id="6">
+                              <div className="card">
+                                 <h2>PM2.5</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
 
-                        <div className="column" id="7" onClick={() => this.cardDatas("7", "PM4")}>
-                           <div className="card">
-                              <h2>PM4.0</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "PM4" }
+                        }}>
+                           <div className="column" id="7">
+                              <div className="card">
+                                 <h2>PM4.0</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
 
-                        <div className="column" id="8" onClick={() => this.cardDatas("8", "PM10")}>
-                           <div className="card">
-                              <h2>PM10.0</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "PM10" }
+                        }}>
+                           <div className="column" id="8">
+                              <div className="card">
+                                 <h2>PM10.0</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
                      </div>
+
 
                      <p className="cardHeading">
                         Particulate Size(PtSize)
                      </p>
                      <div className="row">
-                        <div className="column" id="9" onClick={() => this.cardDatas("9", "PtSize")}>
-                           <div className="card">
-                              <h2>PtSize</h2>
-                              <p><span id="sensor_value"></span></p>
+                        <Link to={{
+                           pathname: "/sensordetailsgraph",
+                           state: { macId: macId, column: "PtSize" }
+                        }}>
+                           <div className="column" id="9">
+                              <div className="card">
+                                 <h2>PtSize</h2>
+                                 <p><span id="sensor_value"></span></p>
+                              </div>
                            </div>
-                        </div>
+                        </Link>
                      </div>
                   </div>
                </div>

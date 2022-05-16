@@ -43,9 +43,7 @@ class App extends Component {
     this.setState({ isLoggedIn: parseInt(credentials) });
   };
 
-  /** Redern the html content on the browser */
   render() {
-    // Render home component on state set to true
     if (parseInt(sessionStorage.getItem("isLoggedIn")) === 1) {
       return (
         <Router>
@@ -132,16 +130,6 @@ class App extends Component {
                 ></Temperature>
               )}
             />
-            {/* <Route
-              exact
-              path="/dailyreport"
-              render={(props) => (
-                <Reports
-                  {...props}
-                  handleLogin={this.handleUserLogin}
-                ></Reports>
-              )}
-            /> */}
             <Route
               exact
               path="/alerts"
@@ -149,36 +137,6 @@ class App extends Component {
                 <Alerts {...props} handleLogin={this.handleUserLogin}></Alerts>
               )}
             />
-            {/* <Route
-              exact
-              path="/employeeRegistration"
-              render={(props) => (
-                <EmployeeRegistration
-                  {...props}
-                  handleLogin={this.handleUserLogin}
-                ></EmployeeRegistration>
-              )}
-            />
-            <Route
-              exact
-              path="/tagAllocation"
-              render={(props) => (
-                <TagAllocation
-                  {...props}
-                  handleLogin={this.handleUserLogin}
-                ></TagAllocation>
-              )}
-            /> */}
-            {/* <Route
-              exact
-              path="/distanceTracking"
-              render={(props) => (
-                <DistanceTracking
-                  {...props}
-                  handleLogin={this.handleUserLogin}
-                ></DistanceTracking>
-              )}
-            /> */}
             <Route
               exact
               path="/airquality"
@@ -211,13 +169,6 @@ class App extends Component {
                 <SensorDetailsGraph {...props} handleLogin={this.handleUserLogin}></SensorDetailsGraph>
               )}
             />
-            {/* <Route
-              exact
-              path="/vehicle"
-              render={(props) => (
-                <Vehicle {...props} handleLogin={this.handleUserLogin}></Vehicle>
-              )}
-            /> */}
           </Switch>
         </Router>
       );

@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import "./Login.css";
 import "../pages/Styling.css";
 import axios from "axios";
@@ -54,9 +53,9 @@ class Login extends Component {
     const { username, password } = this.state;
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Login</title>
-        </Helmet>
+        </>
         <div className="main-div">
           <div className="div-section fading">
             <div

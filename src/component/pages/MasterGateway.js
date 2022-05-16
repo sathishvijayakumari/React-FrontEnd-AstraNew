@@ -15,7 +15,6 @@ class MasterGateway extends Component {
       .then((response) => {
         if (response.status === 201 || response.status === 200) {
           this.fdata = response.data;
-          console.log("Floor Data========>", this.fdata);
           if (this.fdata.length !== 0) {
             for (let i = 0; i < this.fdata.length; i++) {
               $("#fname").append("<option>" + this.fdata[i].name + "</option>");
@@ -89,14 +88,14 @@ class MasterGateway extends Component {
           if (response.status === 201 || response.status === 200) {
             document.getElementById("master-success").innerHTML =
               "Gateway registered successfully.";
-              $("#gatewayid").val("");
+            $("#gatewayid").val("");
           } else {
             document.getElementById("master-error").innerHTML =
               "Unable to Register Gateway.";
           }
         })
         .catch((error) => {
-          // console.log(error);
+          console.log(error.response);
           if (error.response.status === 403) {
             document.getElementById("config_displayModal").style.display =
               "block";
@@ -133,8 +132,8 @@ class MasterGateway extends Component {
           if (response.status === 201 || response.status === 200) {
             document.getElementById("master-success").innerHTML =
               "Gateway un-registered successfully.";
-              $("#gateway").val("");
-              this.show();
+            $("#gateway").val("");
+            this.show();
           } else {
             document.getElementById("master-error").innerHTML =
               "Unable to un-register Gateway.";
@@ -203,26 +202,25 @@ class MasterGateway extends Component {
               onChange={this.hide}
             />
           </div>
-          <div className="input-group">
-            <input
-              type="submit"
-              value="Register Gateway"
-              onClick={this.registerGateway}
-              className="btn success-btn"
-            />
-          </div>
         </form>
-        {/* Button for toggeling for Deleting Gateway Form */}
-        <button
-          onClick={() => {
-            this.show();
-            this.hide();
-          }}
-          className="btn success-btn"
-        >
-          Remove Gateway
-        </button>
-        {/* Form for deleting the registered gateway tags */}
+        <div style={{ display: "flex", margin: "15px" }}>
+          <input
+            type="submit"
+            onClick={this.registerGateway}
+            value="Register Gateway"
+            className="btn success-btn"
+          />
+          <input
+            style={{ marginLeft: "20px" }}
+            type="button"
+            onClick={() => {
+              this.show();
+              this.hide();
+            }}
+            value="Remove Gateway"
+            className="btn success-btn"
+          />
+        </div>
         <form
           id="gateway-del-form"
           className="fading"
@@ -241,7 +239,7 @@ class MasterGateway extends Component {
             />
           </div>
           {/* Elements for displaying error messages */}
-          <div className="input-group">
+          <div className="input-group" style={{ margin: "15px" }}>
             <input
               type="submit"
               value="Delete Gateway"

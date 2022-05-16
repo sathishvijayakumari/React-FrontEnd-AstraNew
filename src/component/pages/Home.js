@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { linkClicked } from "../navbar/Navbar";
 import "./Styling.css";
@@ -29,9 +28,9 @@ class Home extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Home</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">HOME</span>
           <br />
@@ -92,28 +91,7 @@ class Home extends Component {
               <span className="heading">Personnel Management</span>
               <br />
               <hr></hr>
-              {/* <div className="col-4">
-                <Link to="/employeeRegistration">
-                  <img
-                    alt=""
-                    src="../images/Widgets/EmployeeRegistration.png"
-                    style={ImageSize}
-                    className="fading"
-                  />
-                </Link>
-              </div>
-              <div className="col-4">
-                <Link to="/tagAllocation">
-                  <img
-                    alt=""
-                    src="../images/Widgets/TagAllocation.png"
-                    style={ImageSize}
-                    className="fading"
-                  />
-                </Link>
-              </div> */}
               
-              {/* Widget for Tracking, on click navigate to Tracking page */}
               <div className="col-4">
                 <Link to="/tracking">
                   <img
@@ -125,29 +103,6 @@ class Home extends Component {
                   />
                 </Link>
               </div>
-              {/* Widget for Distance Tracking */}
-              {/* <div className="col-4">
-                <Link to="/distanceTracking">
-                  <img
-                    alt=""
-                    src="../images/Widgets/ContactTracing.png"
-                    style={ImageSize}
-                    className="fading"
-                    onClick={() => linkClicked(2)}
-                  />
-                </Link>
-              </div>
-              <div className="col-4">
-                <Link to="/dailyreport">
-                  <img
-                    alt=""
-                    src="../images/Widgets/Widget_Reports.png"
-                    style={ImageSize}
-                    className="fading"
-                    onClick={() => linkClicked(3)}
-                  />
-                </Link>
-              </div> */}
             </div>
 
             <br></br>
@@ -155,7 +110,6 @@ class Home extends Component {
               <span className="heading">Environment Management</span>
               <br />
               <hr></hr>
-              {/* Widget for Alerts, on click navigate to Thermal map page */}
               <div className="col-4">
                 <Link to="/thermalmap">
                   <img
@@ -209,7 +163,7 @@ class Home extends Component {
                 </Link>
               </div>
 
-              <div className="col-4">
+              {/*  <div className="col-4">
                 <Link to="/sensordetails">
                   <img
                     alt=""
@@ -220,7 +174,7 @@ class Home extends Component {
                 </Link>
               </div>
 
-              {/* <div className="col-4">
+              <div className="col-4">
                 <Link to="/vehicle">
                   <img
                     alt=""

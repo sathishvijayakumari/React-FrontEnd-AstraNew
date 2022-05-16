@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import $ from "jquery";
 import "./Styling.css";
@@ -17,6 +16,10 @@ const Underline = {
   height: "9px",
   position: "absolute",
 };
+
+axios.defaults.xsrfHeaderName = "x-csrftoken";
+axios.defaults.xsrfCookieName = "csrftoken";
+axios.defaults.withCredentials = true;
 
 class SystemHealth extends Component {
   componentDidMount() {
@@ -49,32 +52,33 @@ class SystemHealth extends Component {
         if (response.status === 200) {
           let master = response.data;
           $("#gatewayHealth").empty();
-          // Displaying master gateway health details in table format
           if (master.length !== 0) {
             for (let i = 0; i < master.length; i++) {
               let timestamp =
-                  master[i].lastseen.substr(0, 10) +
-                  " " +
-                  master[i].lastseen.substr(11, 8),
+                master[i].lastseen.substr(0, 10) +
+                " " +
+                master[i].lastseen.substr(11, 8),
                 status = "red";
               if (new Date() - new Date(master[i].lastseen) <= 2 * 60 * 1000) {
                 status = "green";
               }
               $("#gatewayHealth").append(
                 "<tr><td>" +
-                  (i + 1) +
-                  "</td><td>" +
-                  master[i].gatewayid +
-                  "</td><td>" +
-                  master[i].floor.name +
-                  "</td><td>" +
-                  timestamp +
-                  "</td><td>" +
-                  "<div class='circle' style='margin:auto;background-color:" +
-                  status +
-                  ";'></div></td></tr>"
+                (i + 1) +
+                "</td><td>" +
+                master[i].gatewayid +
+                "</td><td>" +
+                master[i].floor.name +
+                "</td><td>" +
+                timestamp +
+                "</td><td>" +
+                "<div class='circle' style='margin:auto;background-color:" +
+                status +
+                ";'></div></td></tr>"
               );
             }
+          } else {
+            $("#sys-error").text("Master Gateway data not found.");
           }
         }
       })
@@ -83,10 +87,12 @@ class SystemHealth extends Component {
         if (error.response.status === 403) {
           $("#syshealth_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again.");
+        } else if (error.response.status === 404) {
+          $("#sys-error").text("Master Gateway data not found.");
         } else {
           $("#sys-error").text(
             "Master Gateway : Request failed with status code " +
-              error.response.status
+            error.response.status
           );
         }
       });
@@ -102,30 +108,32 @@ class SystemHealth extends Component {
           if (slave.length !== 0) {
             for (let i = 0; i < slave.length; i++) {
               let timestamp =
-                  slave[i].lastseen.substr(0, 10) +
-                  " " +
-                  slave[i].lastseen.substr(11, 8),
+                slave[i].lastseen.substr(0, 10) +
+                " " +
+                slave[i].lastseen.substr(11, 8),
                 status = "red";
-              if (new Date() - new Date(slave[i].lastseen) <= 2 * 60 * 1000) {
+              if (new Date() - new Date(slave[i].lastseen) <= 30 * 60 * 1000) {
                 status = "green";
               }
               $("#slaveHealth").append(
                 "<tr><td>" +
-                  (i + 1) +
-                  "</td><td>" +
-                  slave[i].gatewayid +
-                  "</td><td>" +
-                  slave[i].master.floor.name +
-                  "</td><td>" +
-                  slave[i].master.gatewayid +
-                  "</td><td>" +
-                  timestamp +
-                  "</td><td>" +
-                  "<div class='circle' style='margin:auto;background-color:" +
-                  status +
-                  ";'></div></td></tr>"
+                (i + 1) +
+                "</td><td>" +
+                slave[i].gatewayid +
+                "</td><td>" +
+                slave[i].master.floor.name +
+                "</td><td>" +
+                slave[i].master.gatewayid +
+                "</td><td>" +
+                timestamp +
+                "</td><td>" +
+                "<div class='circle' style='margin:auto;background-color:" +
+                status +
+                ";'></div></td></tr>"
               );
             }
+          } else {
+            $("#sys-error").text("Slave Gateway data not found.");
           }
         }
       })
@@ -134,10 +142,12 @@ class SystemHealth extends Component {
         if (error.response.status === 403) {
           $("#syshealth_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again.");
+        } else if (error.response.status === 404) {
+          $("#sys-error").text("Slave Gateway data not found.");
         } else {
           $("#sys-error").text(
             "Slave Gateway : Request failed with status code " +
-              error.response.status
+            error.response.status
           );
         }
       });
@@ -153,26 +163,28 @@ class SystemHealth extends Component {
             $("#signalRepeaterHealth").empty();
             for (let i = 0; i < data.length; i++) {
               let timestamp =
-                  data[i].lastseen.substr(0, 10) +
-                  " " +
-                  data[i].lastseen.substr(11, 8),
+                data[i].lastseen.substr(0, 10) +
+                " " +
+                data[i].lastseen.substr(11, 8),
                 status = "red";
               if (new Date() - new Date(data[i].lastseen) <= 2 * 60 * 1000) {
                 status = "green";
               }
               $("#signalRepeaterHealth").append(
                 "<tr><td>" +
-                  (i + 1) +
-                  "</td><td>" +
-                  data[i].macid +
-                  "</td><td>" +
-                  timestamp +
-                  "</td><td>" +
-                  "<div class='circle' style='margin:auto;background-color:" +
-                  status +
-                  ";'></div></td></tr>"
+                (i + 1) +
+                "</td><td>" +
+                data[i].macid +
+                "</td><td>" +
+                timestamp +
+                "</td><td>" +
+                "<div class='circle' style='margin:auto;background-color:" +
+                status +
+                ";'></div></td></tr>"
               );
             }
+          } else {
+            $("#sys-error").text("Signal Repeater data not found.");
           }
         }
       })
@@ -180,10 +192,12 @@ class SystemHealth extends Component {
         if (error.response.status === 403) {
           $("#syshealth_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again.");
+        } else if (error.response.status === 404) {
+          $("#sys-error").text("Signal Repeater data not found.");
         } else {
           $("#sys-error").text(
             "Signal Repeator : Request failed with status code " +
-              error.response.status
+            error.response.status
           );
         }
       });
@@ -200,30 +214,32 @@ class SystemHealth extends Component {
           if (data.length !== 0) {
             for (let i = 0; i < data.length; i++) {
               let timestamp =
-                  data[i].lastseen.substr(0, 10) +
-                  " " +
-                  data[i].lastseen.substr(11, 8),
+                data[i].lastseen.substr(0, 10) +
+                " " +
+                data[i].lastseen.substr(11, 8),
                 status = "red";
               if (new Date() - new Date(data[i].lastseen) <= 2 * 60 * 1000) {
                 status = "green";
               }
               $("#sensorHealth").append(
                 "<tr><td>" +
-                  (i + 1) +
-                  "</td><td>" +
-                  data[i].macid +
-                  "</td><td>Temp/Humid Sensor</td><td>" +
-                  data[i].battery +
-                  "</td><td>" +
-                  timestamp +
-                  "</td><td>" +
-                  "<div class='circle' style='margin:auto;background-color:" +
-                  status +
-                  ";'></div></td></tr>"
+                (i + 1) +
+                "</td><td>" +
+                data[i].macid +
+                "</td><td>Temp/Humid Sensor</td><td>" +
+                data[i].battery +
+                "</td><td>" +
+                timestamp +
+                "</td><td>" +
+                "<div class='circle' style='margin:auto;background-color:" +
+                status +
+                ";'></div></td></tr>"
               );
               count = i + 1;
             }
             this.iaqHealth(count);
+          } else {
+            $("#sys-error").text("Sensor data not found.");
           }
         }
       })
@@ -232,10 +248,12 @@ class SystemHealth extends Component {
         if (error.response.status === 403) {
           $("#syshealth_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again.");
+        } else if (error.response.status === 404) {
+          $("#sys-error").text("Sensor data not found.");
         } else {
           $("#sys-error").text(
             "Sensor Health : Request failed with status code " +
-              error.response.status
+            error.response.status
           );
         }
       });
@@ -249,28 +267,30 @@ class SystemHealth extends Component {
           if (data.length !== 0) {
             for (let i = 0; i < data.length; i++) {
               let timestamp =
-                  data[i].lastseen.substr(0, 10) +
-                  " " +
-                  data[i].lastseen.substr(11, 8),
+                data[i].lastseen.substr(0, 10) +
+                " " +
+                data[i].lastseen.substr(11, 8),
                 status = "red";
               if (new Date() - new Date(data[i].lastseen) <= 2 * 60 * 1000) {
                 status = "green";
               }
               $("#sensorHealth").append(
                 "<tr><td>" +
-                  parseInt(count + parseInt(i + 1)) +
-                  "</td><td>" +
-                  data[i].macid +
-                  "</td><td>IAQ Sensor</td><td>" +
-                  data[i].battery +
-                  "</td><td>" +
-                  timestamp +
-                  "</td><td>" +
-                  "<div class='circle' style='margin:auto;background-color:" +
-                  status +
-                  ";'></div></td></tr>"
+                parseInt(count + parseInt(i + 1)) +
+                "</td><td>" +
+                data[i].macid +
+                "</td><td>IAQ Sensor</td><td>" +
+                data[i].battery +
+                "</td><td>" +
+                timestamp +
+                "</td><td>" +
+                "<div class='circle' style='margin:auto;background-color:" +
+                status +
+                ";'></div></td></tr>"
               );
             }
+          } else {
+            $("#sys-error").text("IAQ data not found.");
           }
         }
       })
@@ -279,10 +299,12 @@ class SystemHealth extends Component {
         if (error.response.status === 403) {
           $("#syshealth_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again.");
+        } else if (error.response.status === 404) {
+          $("#sys-error").text("IAQ data not found.");
         } else {
           $("#sys-error").text(
             "Sensor Health : Request failed with status code " +
-              error.response.status
+            error.response.status
           );
         }
       });
@@ -290,37 +312,38 @@ class SystemHealth extends Component {
 
   /** Fetch health details of all employee tags registered */
   assetHealth = () => {
-    axios({ method: "GET", url: employeeRegistration+"?key=all" })
+    axios({ method: "GET", url: employeeRegistration + "?key=all" })
       .then((response) => {
-        console.log('employee======>',response);
         if (response.status === 200) {
           let data = response.data;
           if (data.length !== 0) {
             $("#systemHealth").empty();
             for (let i = 0; i < data.length; i++) {
               let timestamp =
-                  data[i].lastseen.substr(0, 10) +
-                  " " +
-                  data[i].lastseen.substr(11, 8),
+                data[i].lastseen.substr(0, 10) +
+                " " +
+                data[i].lastseen.substr(11, 8),
                 status = "red";
               if (new Date() - new Date(data[i].lastseen) <= 2 * 60 * 1000) {
                 status = "green";
               }
               $("#systemHealth").append(
                 "<tr><td>" +
-                  (i + 1) +
-                  "</td><td>" +
-                  data[i].tagid +
-                  "</td><td>" +
-                  data[i].battery +
-                  "</td><td>" +
-                  timestamp +
-                  "</td><td>" +
-                  "<div class='circle' style='margin:auto;background-color:" +
-                  status +
-                  ";'></div></td></tr>"
+                (i + 1) +
+                "</td><td>" +
+                data[i].tagid +
+                "</td><td>" +
+                data[i].battery +
+                "</td><td>" +
+                timestamp +
+                "</td><td>" +
+                "<div class='circle' style='margin:auto;background-color:" +
+                status +
+                ";'></div></td></tr>"
               );
             }
+          } else {
+            $("#sys-error").text("Asset data not found.");
           }
         }
       })
@@ -329,10 +352,12 @@ class SystemHealth extends Component {
         if (error.response.status === 403) {
           $("#syshealth_displayModal").css("display", "block");
           $("#content").text("User Session has timed out. Please Login again.");
+        } else if (error.response.status === 404) {
+          $("#sys-error").text("Asset data not found.");
         } else {
           $("#sys-error").text(
             "Employee Tag : Request failed with status code " +
-              error.response.status
+            error.response.status
           );
         }
       });
@@ -348,9 +373,9 @@ class SystemHealth extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>System Health</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">SYSTEM HEALTH</span>
           <br />

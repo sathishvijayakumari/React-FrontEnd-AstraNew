@@ -1,9 +1,14 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import $ from "jquery";
 import "./Styling.css";
 import { floorMap } from "../../urls/apis";
+
+
+axios.defaults.xsrfHeaderName = "x-csrftoken";
+axios.defaults.xsrfCookieName = "csrftoken";
+axios.defaults.withCredentials = true;
+
 
 // Styling property for Underline Image
 const Underline = {
@@ -92,7 +97,7 @@ class UploadMap extends Component {
   };
 
   delete = () => {
-    axios({ method: "DELETE", url: "/api/uploadmap", data: { id: "10" } })
+    axios({ method: "DELETE", url: "/api/uploadmap", data: { id: "48" } })
       .then((res) => {
         console.log("==========>", res);
       })
@@ -112,9 +117,9 @@ class UploadMap extends Component {
     const { fname, width, height } = this.state; // Destructuring data
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Upload Map</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">UPLOAD FLOOR MAP</span>
           <br />
@@ -188,7 +193,7 @@ class UploadMap extends Component {
                 </div>
               </form>
             </div>
-            {/* <div className="row" style={{ display: "block" }}>
+            {/*<div className="row" style={{ display: "block" }}>
               <button
                 className="btn success-btn"
                 onClick={() => {
@@ -224,6 +229,7 @@ class UploadMap extends Component {
                 </div>
               </form>
             </div>
+
             <div className="row">
               <div
                 id="temp"

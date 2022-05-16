@@ -202,9 +202,9 @@ export default class Vehicle extends Component {
         const {sensorDet} = this.state;
         return (
             <Fragment>
-                <Helmet>
+                <>
                     <title>Vehicle Details</title>
-                </Helmet>
+                </>
                 <div className="panel">
                     <span className="main-heading">Vehicle Details</span><br/>
                     <img alt="" src="../images/Tiles/Underline.png"

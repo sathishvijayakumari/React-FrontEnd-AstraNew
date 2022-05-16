@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import $ from "jquery";
 import "./Styling.css";
@@ -42,7 +41,7 @@ class Reports extends Component {
                 "</tr>"
               );
             }
-          } else{
+          } else {
             $("#report-error").text("No Employee data found.");
           }
         }
@@ -71,9 +70,9 @@ class Reports extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Reports</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">Reports</span>
           <br />

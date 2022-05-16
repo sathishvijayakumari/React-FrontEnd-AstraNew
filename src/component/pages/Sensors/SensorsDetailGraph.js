@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import $ from "jquery";
 import "../Styling.css";
@@ -25,27 +24,27 @@ export default class SensorsDetailGraph extends Component {
    }
 
    componentDidMount() {
-      const sensorData = localStorage.getItem("sensor_macid");
-      const sensor_det = JSON.parse(sensorData)
-      console.log(sensor_det.macId, 'Sensors Macid------->', sensor_det);
-      this.sensorData(sensor_det.macId, sensor_det.column);
-      this.setState({ macId: sensor_det.macId })
-      // this.interval1 = setInterval(() => this.sensorData(sensor_det.macId, sensor_det.column), 15 * 1000);
+      let macId = this.props.location.state.macId;
+      let column = this.props.location.state.column;
+      console.log('Sensors Macid------->', this.props.location.state);
+      this.setState({ macId: macId, column: column })
+      this.sensorData(macId, column);
+      this.interval1 = setInterval(() => this.sensorData(macId, column), 15 * 1000);
    }
 
-   // componentWillUnmount() {
-   //    clearInterval(this.interval1);
-   // }
+   componentWillUnmount() {
+      clearInterval(this.interval1);
+   }
 
    sensorData = (macid, column) => {
-      console.log(macid, column, 'sensorData Graph Page======>', sensors_details_macId_details);
+      // console.log(macid, column, 'sensorData Graph Page======>', sensors_details_macId_details);
       $("#sensor_details_graph").css("display", "none");
       this.setState({ loading: true })
-      console.log("Data MACID=--->", macid);
+      // console.log("Data MACID=--->", macid);
       axios({ method: "POST", url: sensors_details_macId_details, data: { column: column, mac: macid } })
          .then((response) => {
             const data = response.data;
-            console.log('Response ======>', response.data);
+            // console.log('Response ======>', response.data);
             if (data.length !== 0 && response.status === 200) {
                var lbl = [], tempData = [], ct = 1, graphName='';
                if (data.length > 100) {
@@ -203,9 +202,9 @@ export default class SensorsDetailGraph extends Component {
       const { macId } = this.state;
       return (
          <Fragment>
-            <Helmet>
+            <>
                <title>Sensor Details</title>
-            </Helmet>
+            </>
             <div className="panel">
                <span className="main-heading">Sensor Details</span><br />
                <img alt="" src="../images/Tiles/Underline.png" style={Underline} />

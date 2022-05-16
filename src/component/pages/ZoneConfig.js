@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import "./Styling.css";
 import $ from "jquery";
@@ -186,9 +185,9 @@ class ZoneConfig extends Component {
   render() {
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Zone Configuration</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">Zone Configuration</span>
           <br />

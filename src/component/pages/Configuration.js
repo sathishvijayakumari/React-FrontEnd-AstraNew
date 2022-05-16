@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import { Helmet } from "react-helmet";
 import axios from "axios";
 import "./Styling.css";
 import $ from "jquery";
@@ -39,6 +38,7 @@ class Configuration extends Component {
   componentDidMount() {
     $("#b1").css("color", "white");
     $("#b1").css("background", " rgb(0, 98, 135)");
+    this.props.handleLogin(1);
   }
 
   /** Methods to display and hide the forms on button click  */
@@ -96,9 +96,9 @@ class Configuration extends Component {
     }
     return (
       <Fragment>
-        <Helmet>
+        <>
           <title>Configuration</title>
-        </Helmet>
+        </>
         <div className="panel">
           <span className="main-heading">CONFIGURATION</span>
           <br />
