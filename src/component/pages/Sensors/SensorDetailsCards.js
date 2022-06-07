@@ -52,8 +52,8 @@ class SensorDetailsCards extends PureComponent {
                      $("#0 .card  #sensor_value").text(dt[i].Temp.toFixed(2))
                      $("#1 .card  #sensor_value").text(dt[i].Humi.toFixed(2))
                      $("#2 .card  #sensor_value").text(dt[i].Co2.toFixed(2))
-                     $("#3 .card  #sensor_value").text(dt[i].O2.toFixed(2))
-                     $("#4 .card  #sensor_value").text(dt[i].VOC.toFixed(2))
+                     $("#3 .card  #sensor_value").text(dt[i].VOC.toFixed(2))
+                     $("#4 .card  #sensor_value").text(dt[i].O2.toFixed(2) + 7)
                      $("#5 .card  #sensor_value").text(dt[i].PtSize.toFixed(2))
                      $("#6 .card  #sensor_value").text(dt[i].PM1.toFixed(2))
                      $("#7 .card  #sensor_value").text(dt[i].PM2.toFixed(2))
@@ -160,10 +160,10 @@ class SensorDetailsCards extends PureComponent {
             ['2', 'TEMPERATURE', '°C', $("#0 .card  #sensor_value").text(), '*', 'ASHRAE'],
             ['3', 'RESPIRABLE PARTICULATE', 'mg/m³', '--', '0.05', 'ASHRAE'],
             ['4', 'CARBON MONOXIDE(CO)', 'mg/m³', '--', '9', 'ASHRAE'],
-            ['5', 'OXYGEN(O2)', '%', $("#3 .card  #sensor_value").text(), '>19.5', "OSHA'S"],
+            ['5', 'OXYGEN(O2)', '%', $("#4 .card  #sensor_value").text(), '>19.5', "OSHA'S"],
             ['6', 'CARBON DIOXIDE(CO2)', 'PPM', $("#2 .card  #sensor_value").text(), '1000', 'ASHRAE'],
             ['7', 'HEAT STRESS', '°C', '--', '**', "OSHA'S"],
-            ['8', 'INDOOR AIR QUALITY (IAQ)', '--', $("#4 .card  #sensor_value").text(), '--', '--'],
+            ['8', 'INDOOR AIR QUALITY (IAQ)', '--', $("#3 .card  #sensor_value").text(), '--', '--'],
             ['9', 'PARTICAL SIZE (PtSIZE)', 'mm/1000', $("#5 .card  #sensor_value").text(), '--', "--"],
 
          ],

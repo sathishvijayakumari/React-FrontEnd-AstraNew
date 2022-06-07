@@ -30,11 +30,11 @@ class SystemHealth extends Component {
     this.sensorHealth();
     this.assetHealth();
     // timer function for refreshing each 10 seconds
-    this.interval1 = setInterval(this.masterHealth, 15 * 1000);
-    this.interval2 = setInterval(this.slaveHealth, 15 * 1000);
-    this.interval3 = setInterval(this.signalRepeatorHealth, 15 * 1000);
-    this.interval4 = setInterval(this.sensorHealth, 15 * 1000);
-    this.interval5 = setInterval(this.assetHealth, 15 * 1000);
+    this.interval1 = setInterval(this.masterHealth, 10 * 1000);
+    this.interval2 = setInterval(this.slaveHealth, 10 * 1000);
+    this.interval3 = setInterval(this.signalRepeatorHealth, 10 * 1000);
+    this.interval4 = setInterval(this.sensorHealth, 10 * 1000);
+    this.interval5 = setInterval(this.assetHealth, 10 * 1000);
   }
 
   componentWillUnmount() {

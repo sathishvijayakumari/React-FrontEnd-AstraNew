@@ -41,6 +41,12 @@ class Temperature extends Component {
     xpixel = 0;
     flag = "false";
     floorData = [];
+    constructor() {
+        super();
+        this.state = {
+            inactive: 0
+        }
+    }
 
     /** Method is called on Component Load */
     componentDidMount() {
@@ -94,6 +100,7 @@ class Temperature extends Component {
     }
 
     plotFloorMap = () => {
+        this.setState({ inactive: 0 })
         $("#temp-error").text("");
         let floorID = $("#fname").val();
         this.fimage = this.floorData[floorID];
@@ -128,6 +135,7 @@ class Temperature extends Component {
 
     /** Highlighting sensors on the floor map */
     plotSensors = () => {
+        this.setState({ inactive: 0 });
         let fname = $("#fname").val();
         console.log(this.wp, "==========", this.hp);
         $("#temp-error").text("");
@@ -145,17 +153,17 @@ class Temperature extends Component {
                     let data = response.data;
                     if (data.length !== 0) {
                         $("#lastupdated").css("display", "block");
-                        let totaltags = 0;
+                        let totaltags = 0, inactiveCount = 0;
                         for (let i = 0; i < data.length; i++) {
-                           
+
                             let childDiv = document.createElement("div");
                             let xaxis = 0, yaxis = 0;
                             xaxis = parseInt(wpx * parseFloat(data[i].x1));
                             yaxis = parseInt(hpx * parseFloat(data[i].y1));
-                            let senWidth = Math.ceil((data[i].x2 - data[i].x1) * wpx);
-                            let senHeight = Math.ceil((data[i].y2 - data[i].y1) * hpx);
+                            let senWidth = Math.ceil((data[i].x2 - data[i].x1) * wpx) - 3;
+                            let senHeight = Math.ceil((data[i].y2 - data[i].y1) * hpx) - 3;
                             $(childDiv).attr("id", data[i].macid);
-                            if (new Date() - new Date(data[i].lastseen) <= 2 * 60 * 1000) {
+                            if (new Date() - new Date(data[i].lastseen) <= 30 * 60 * 1000) {
                                 totaltags = totaltags + 1;
                                 $(childDiv).attr(
                                     "title",
@@ -239,39 +247,41 @@ class Temperature extends Component {
                                         "px;"
                                     );
                                 }
-                            } 
-                            // else {
-                            //     $(childDiv).attr(
-                            //         "title",
-                            //         "\nMAC ID : " +
-                            //         data[i].macid +
-                            //         "\nTemperature  : " +
-                            //         data[i].temperature +
-                            //         "\nHumidity : " +
-                            //         data[i].humidity +
-                            //         "\nLastseen : " +
-                            //         data[i].lastseen.substring(0, 19).replace("T", " ")
-                            //     );
-                            //     $(childDiv).on("click", () => {
-                            //         this.showThermalMap(data[i].macid);
-                            //     });
-                            //     $(childDiv).attr("class", "square");
-                            //     $(childDiv).attr(
-                            //         "style",
-                            //         "border:1.5px solid #ff7600; background-color: rgba(0,0, 0,0.8);" +
-                            //         "position: absolute; cursor: pointer; left: " +
-                            //         xaxis +
-                            //         "px;top:" +
-                            //         yaxis +
-                            //         "px;width:" +
-                            //         senWidth +
-                            //         "px;height:" +
-                            //         senHeight +
-                            //         "px;"
-                            //     );
-                            // }
+                            }
+                            else {
+                                inactiveCount += 1;
+                                $(childDiv).attr(
+                                    "title",
+                                    "\nMAC ID : " +
+                                    data[i].macid +
+                                    "\nTemperature  : " +
+                                    data[i].temperature +
+                                    "\nHumidity : " +
+                                    data[i].humidity +
+                                    "\nLastseen : " +
+                                    data[i].lastseen.substring(0, 19).replace("T", " ")
+                                );
+                                // $(childDiv).on("click", () => {
+                                //     this.showThermalMap(data[i].macid);
+                                // });
+                                $(childDiv).attr("class", "square");
+                                $(childDiv).attr(
+                                    "style",
+                                    "border:0.5px solid black; background-color: rgba(255,0, 0,0.4);" +
+                                    "position: absolute; cursor: pointer; left: " +
+                                    xaxis +
+                                    "px;top:" +
+                                    yaxis +
+                                    "px;width:" +
+                                    senWidth +
+                                    "px;height:" +
+                                    senHeight +
+                                    "px;"
+                                );
+                            }
                             $("#temp").append(childDiv);
                         }
+                        this.setState({ inactive: inactiveCount });
                         $("#total").text(totaltags);
                         $("#timing").text(data[0].lastseen.substring(0, 19).replace("T", " "));
                         if ($("#temp").children("div").length === 0) {
@@ -722,6 +732,7 @@ class Temperature extends Component {
     };
 
     render() {
+        const { inactive } = this.state;
         return (
             <Fragment>
                 <>
@@ -804,15 +815,15 @@ class Temperature extends Component {
                                     Warm
                                     <div style={{ display: "inline" }}> ( &gt;30&deg;C )</div>
 
-                                    {/*<div
+                                    <div
                                         className="square"
                                         style={{
-                                            backgroundColor: "rgba(0,0, 0,0.8)",
+                                            backgroundColor: "rgba(255,0, 0,0.7)",
                                             display: "inline-block",
                                             marginRight: "10px",
                                             marginLeft: "20px",
                                         }}
-                                    ></div>Inactive Sensor */}
+                                    ></div>Inactive ({inactive})
                                 </div>
                             </div>
                             <div

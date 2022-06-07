@@ -57,6 +57,7 @@ class AirQuality extends Component {
         if (response.status === 201 || response.status === 200) {
           $("#temp-error").text("");
           this.fdata = response.data;
+          console.log("FloorDet========>", this.fdata);
           if (this.fdata.length !== 0) {
             $("#floorBlock").css("display", "block");
             for (let i = 0; i < this.fdata.length; i++) {

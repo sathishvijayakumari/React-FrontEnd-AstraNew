@@ -163,7 +163,7 @@ class Home extends Component {
                 </Link>
               </div>
 
-              {/*  <div className="col-4">
+               <div className="col-4">
                 <Link to="/sensordetails">
                   <img
                     alt=""
@@ -174,7 +174,7 @@ class Home extends Component {
                 </Link>
               </div>
 
-              <div className="col-4">
+              {/*<div className="col-4">
                 <Link to="/vehicle">
                   <img
                     alt=""

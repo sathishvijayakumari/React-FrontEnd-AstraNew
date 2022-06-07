@@ -50,7 +50,7 @@ export default class SensorDetails extends Component {
                      })
                   }
                   this.setState({ sensorDet: datas });
-               }else {
+               } else {
                   $("#sensor_error").text("No Sensor Data found.");
                }
             }
