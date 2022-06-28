@@ -433,6 +433,7 @@ class AssetReg extends Component {
       data[sheetName] = rowString;
       data1 = rowObj;
     });
+    // console.log("============>", data1);
 
     this.setState({ excelData: data1 });
   }

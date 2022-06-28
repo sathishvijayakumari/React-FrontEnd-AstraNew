@@ -262,7 +262,7 @@ class Tracking extends Component {
                 } else {
                   color = "blue";
                 }
-                console.log(data[i].tagid, "PANIC COLOR ------->", color);
+                // console.log(data[i].tagid, "PANIC COLOR ------->", color);
                 totaltags = totaltags + 1;
 
                 let empDiv = document.createElement("div");
